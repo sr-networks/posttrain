@@ -1,5 +1,15 @@
 [
   {
+    "title": "Ravid Shwartz Ziv (@ziv_ravid): Inside-a-Company Post-Training Thread (Why, Eval, Traces, Skill Pre-Check, 30B LoRA)",
+    "url": "https://x.com/ziv_ravid/status/2123537747348791582",
+    "internalUrl": "company-blueprint/",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "14-step enterprise sequence: validate business case, invest in evals & real traces, run a zero-training skill-distillation pre-check, start ~30B LoRA on 1 GPU, and climb Skills → SFT → Distillation → RL."
+  },
+  {
     "title": "How Coinbase Built, Evaluated, and Post-Trained a Fraud Agent (Qwen3.5-9B + SkyRL)",
     "url": "https://www.coinbase.com/blog/part-one-how-coinbase-built-evaluated-and-post-trained-a-fraud-agent",
     "year": 2026,

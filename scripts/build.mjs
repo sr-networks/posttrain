@@ -90,6 +90,17 @@ function renderMarkdown(md) {
       continue;
     }
 
+    // Blockquote
+    if (/^>\s?/.test(line)) {
+      const qLines = [];
+      while (i < lines.length && /^>\s?/.test(lines[i])) {
+        qLines.push(lines[i].replace(/^>\s?/, '').trim());
+        i++;
+      }
+      html.push(`<blockquote class="callout callout-insight"><p>${inlineMd(qLines.join(' '))}</p></blockquote>`);
+      continue;
+    }
+
     // Horizontal rule
     if (/^---+\s*$/.test(line)) {
       html.push('<hr>');
@@ -176,7 +187,7 @@ function renderMarkdown(md) {
     while (
       i < lines.length &&
       lines[i].trim() !== '' &&
-      !lines[i].match(/^(#{1,3}\s|```|---+|:::|\s*-\s+|\d+\.\s+)/) &&
+      !lines[i].match(/^(#{1,3}\s|```|---+|:::|>\s?|\s*-\s+|\d+\.\s+)/) &&
       !(lines[i].includes('|') && i + 1 < lines.length && /^\s*\|?[\s:-]+\|/.test(lines[i + 1]))
     ) {
       para.push(lines[i].trim());
@@ -365,6 +376,7 @@ function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
           <li><a href="${rootPrefix}" class="${activeNav === 'home' ? 'active' : ''}"><span>Executive Overview</span></a></li>
           <li><a href="${rootPrefix}case-studies/" class="${activeNav === 'cases' ? 'active' : ''}"><span>Audited Case Studies</span><span class="sidebar-pill">${caseStudies.length}</span></a></li>
           <li><a href="${rootPrefix}best-practices/" class="${activeNav === 'playbook' ? 'active' : ''}"><span>Field Playbook (10 Rules)</span></a></li>
+          <li><a href="${rootPrefix}company-blueprint/" class="${activeNav === 'blueprint' ? 'active' : ''}"><span>Company Blueprint (Ziv)</span><span class="sidebar-pill">New</span></a></li>
         </ul>
       </div>
       <div class="sidebar-group">
@@ -891,7 +903,7 @@ function buildFrameworksPage() {
 
 function buildReferencesPage() {
   const pillars = ['Industry Case Study', 'SFT', 'RL', 'Distillation', 'Evals & Rewards', 'Frameworks & Infra', 'Continual Learning & Memory'];
-  const sources = ['Obsidian Vault', 'Apple Notes'];
+  const sources = ['Web / X', 'Obsidian Vault', 'Apple Notes'];
   const types = ['Blog / Case Study', 'Paper', 'Repo / Tool', 'Video / Talk'];
 
   const refItemsHtml = references
@@ -907,6 +919,9 @@ function buildReferencesPage() {
           ? 'badge-tier1'
           : '';
       const searchBlob = `${r.title} ${r.pillar} ${r.type} ${r.source} ${r.year} ${r.takeaway}`;
+      const internalLink = r.internalUrl
+        ? `<a class="badge badge-tier1" href="../${escapeHtml(r.internalUrl)}" style="text-decoration:none;">Read dedicated page →</a>`
+        : '';
       return `
       <div class="ref-item"
            data-ref-item
@@ -923,6 +938,7 @@ function buildReferencesPage() {
           <span class="badge ${pillarCls}">${escapeHtml(r.pillar)}</span>
           <span class="badge">${escapeHtml(r.type)}</span>
           <span class="badge">${escapeHtml(r.source)}</span>
+          ${internalLink}
         </div>
       </div>`;
     })
@@ -974,7 +990,8 @@ function buildSearchIndex() {
     { title: 'Distillation (Off-Policy KD, On-Policy Distillation / OPD, Self-Distillation)', category: 'Core Pillar', url: 'distillation/', excerpt: 'OPD 9x-30x compute savings, PivotOPD, SDFT/SDPO, late-2026 self-distillation OOD caveats.', external: false },
     { title: 'Frameworks, Compute & Hardware Sizing', category: 'Stack', url: 'frameworks/', excerpt: 'verl, SkyRL, PrimeRL, OpenPipe ART, Unsloth, HF TRL, Tinker, Agent Lightning, GPU budgets.', external: false },
     { title: 'Production Post-Training Playbook (10 Rules)', category: 'Best Practices', url: 'best-practices/', excerpt: 'Harness first, overfit smoke test, token-in-token-out, judge variance, FP8 controls, sampling bounds.', external: false },
-    { title: 'Curated Reference Library', category: 'Archive', url: 'references/', excerpt: 'Filterable archive of Obsidian Vault, Apple Notes, and 2025-2026 web links.', external: false }
+    { title: 'Inside-a-Company Post-Training Blueprint (Ravid Shwartz Ziv)', category: 'Strategy & Blueprint', url: 'company-blueprint/', excerpt: '7-stage enterprise sequence: why bother, evals first, real traces, zero-training skill-distillation pre-check, ~30B 1-GPU LoRA, Skills → SFT → Distillation → RL.', external: false },
+    { title: 'Curated Reference Library', category: 'Archive', url: 'references/', excerpt: 'Filterable archive of curated post-training papers, industry case studies, repos, and talks.', external: false }
   ];
 
   for (const cs of caseStudies) {
@@ -1066,6 +1083,15 @@ writeOut(
     activeNav: 'playbook',
     title: 'Production Post-Training Playbook',
     description: '10 field-tested rules for post-training small and midsize models in industry.'
+  })
+);
+writeOut(
+  'company-blueprint/index.html',
+  buildMarkdownPage({
+    mdFile: 'company-blueprint.md',
+    activeNav: 'blueprint',
+    title: 'Inside-a-Company Post-Training Blueprint (Ravid Shwartz Ziv)',
+    description: 'Step-by-step enterprise post-training sequence from Ravid Shwartz Ziv: business case, evals, real traces, skill distillation pre-check, 30B LoRA, and method escalation.'
   })
 );
 
