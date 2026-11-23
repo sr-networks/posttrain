@@ -1,0 +1,10 @@
+{
+  "name": "posttrain-industry-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitLab Pages knowledge hub on practical industry post-training (SFT, RL, Distillation) for small and midsize language models.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "serve": "node scripts/build.mjs && python3 -m http.server 8080 --directory public"
+  }
+}

@@ -1,0 +1,716 @@
+[
+  {
+    "slug": "coinbase-fraud-agent",
+    "title": "Coinbase Onramp Fraud Agent",
+    "company": "Coinbase",
+    "industry": "FinTech & Risk",
+    "year": "2026",
+    "modelSize": "9B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Qwen3.5-9B",
+    "methods": ["RL"],
+    "methodLabel": "Outcome-Based RL (SkyRL)",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "+9.6% F1", "label": "vs. Claude Opus 4.5" },
+      { "value": "-55%", "label": "Median latency (0.68s vs 1.52s)" },
+      { "value": "-22%", "label": "Fraud dollar value in A/B" },
+      { "value": "<$100", "label": "Single-GPU RL training run" }
+    ],
+    "summary": "Coinbase post-trained an open-weight Qwen3.5-9B risk agent with outcome-based RL on proprietary Onramp fraud data, outperforming Claude Opus 4.5 on all four fraud detection metrics at less than half the latency.",
+    "businessValueAnalysis": "Direct bottom-line ROI in real-time transaction risk. Fraud detection has massive volume, strict sub-second latency budgets, sensitive PII/financial data, and asymmetric financial loss per false negative. Coinbase also proved a critical enterprise risk of relying on closed frontier APIs: newer frontier releases actually regressed on their proprietary 16,140-transaction fraud benchmark. Owning a 9B post-trained model removes vendor regression risk, slashes latency by 55%, keeps transaction telemetry internal, and pays back its <$100 training cost within hours of production deployment.",
+    "problemContext": "Coinbase Onramp handles crypto purchases inside partner apps, including guest checkouts without established account history. Classical rules and tabular ML catch fast single-transaction fraud, but coordinated attacks span sequential behavioral patterns. Adding an LLM risk agent cut fraudulent transactions by 30% and fraud value by 22% in online A/B tests—but frontier APIs were slow, costly, and regressed across model updates.",
+    "technicalRecipe": {
+      "architecture": "Qwen3.5-9B served on Ray Serve LLM + vLLM",
+      "trainingStack": "SkyRL on Anyscale; single high-VRAM workstation GPU (RTX PRO 6000 96GB class)",
+      "dataAndHarness": "Proprietary Onramp evaluation benchmark of 16,140 transactions (813 confirmed fraud cases) plus historical labeled fraud outcomes.",
+      "rewardDesign": "Verifiable outcome-based rewards directly mapped to real chargeback/fraud outcomes and dollar-weighted recall—no ambiguous LLM judge needed."
+    },
+    "quantifiedResults": [
+      "Outperformed Claude Opus 4.5 across all 4 core detection metrics, including +9.6% higher F1 score and strong gains in dollar-weighted recall.",
+      "Median end-to-end serving latency dropped to 0.683s vs. 1.515s for Claude Opus 4.5 (-55%).",
+      "Online A/B deployment of the risk agent reduced fraudulent transactions by 30% and fraud dollar value by 22%.",
+      "Full RL post-training run completed on a single GPU for under $100 in compute."
+    ],
+    "keyLearnings": [
+      "Do not assume frontier model upgrades improve your vertical KPI—benchmark every release on your own labeled ground truth.",
+      "When real business outcomes (fraud chargebacks, claim denials, conversions) provide verifiable ground-truth labels, RL on a 9B open model beats 10x–50x larger generalists.",
+      "Start with a frontier API in production to prove business value via A/B test first, then distill/RL-train a small owned model once the eval harness is battle-tested."
+    ],
+    "watchouts": [
+      "Requires clean, delayed-label attribution pipelines (chargebacks arrive days/weeks after checkout) to avoid reward leakage.",
+      "Fraud patterns drift adversarially—plan for scheduled retraining cadence rather than one-off fine-tuning."
+    ],
+    "links": [
+      { "label": "Coinbase Engineering: Owning Intelligence (Part 1)", "url": "https://www.coinbase.com/blog/part-one-how-coinbase-built-evaluated-and-post-trained-a-fraud-agent" }
+    ]
+  },
+  {
+    "slug": "cursor-tab-online-rl",
+    "title": "Cursor Tab Online RL",
+    "company": "Cursor (Anysphere)",
+    "industry": "Developer Tools",
+    "year": "2025–2026",
+    "modelSize": "Small/Mid (Proprietary Fast Autocomplete)",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Custom Fast Autocomplete Architecture",
+    "methods": ["RL"],
+    "methodLabel": "Online Policy-Gradient RL",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "+28%", "label": "Suggestion accept rate" },
+      { "value": "-21%", "label": "Total noisy suggestions shown" },
+      { "value": "1.5–2 hrs", "label": "Checkpoint deploy turnaround" },
+      { "value": "100M+/day", "label": "Real-time user telemetry signals" }
+    ],
+    "summary": "Cursor closed the loop between live developer interactions and model weights, using online policy-gradient RL on accept/reject/silence telemetry to ship improved Tab checkpoints every 1.5–2 hours.",
+    "businessValueAnalysis": "The gold standard of a self-reinforcing product data flywheel. Autocomplete UX is destroyed by noisy, distracting ghost text. Previously, Cursor bolted an external logistic-regression filter onto the model to suppress bad suggestions. Moving the decision of 'when to speak vs. stay silent' directly into the model via online RL cut interruptions by 21% while jumping accept rates by 28%—directly driving daily retention and subscription conversion across millions of developers.",
+    "problemContext": "Static SFT autocomplete models optimize next-token likelihood on historical edits, which does not penalize annoying, low-value suggestions shown at the wrong moment. Traditional offline RLHF cycles take weeks or months and lag rapidly shifting coding patterns.",
+    "technicalRecipe": {
+      "architecture": "Ultra-low-latency specialized code-edit model serving hundreds of millions of daily requests",
+      "trainingStack": "Continuous on-policy rollout collection + policy-gradient RL trainer + rapid serving rollout pipeline (later expanded to 5-hour cycles for Composer)",
+      "dataAndHarness": "Live on-policy completions tied strictly to the exact serving checkpoint ID that produced them.",
+      "rewardDesign": "Implicit product telemetry: Accepted suggestion (Tab) = positive reward; Rejected/ignored suggestion = negative penalty; Silence (no suggestion) = neutral baseline."
+    },
+    "quantifiedResults": [
+      "21% reduction in total suggestions displayed to users, dramatically cutting visual noise.",
+      "28% increase in suggestion accept rate when completions are shown.",
+      "End-to-end online data → policy-gradient update → production deployment cycle compressed to 1.5–2 hours."
+    ],
+    "keyLearnings": [
+      "Implicit user telemetry (accept / dismiss / undo / escalate) is often a vastly cheaper and higher-volume reward signal than human annotation or LLM judges.",
+      "Training the model to abstain ('stay silent' / 'escalate') yields far cleaner behavior than stacking brittle heuristic post-filters outside the model.",
+      "Online RL requires strict on-policy version tracking—every logged interaction must record exact model checkpoint and logprobs to avoid off-policy collapse."
+    ],
+    "watchouts": [
+      "Only viable once you have high-frequency user interactions and robust safety/regression gates before automated checkpoint promotion.",
+      "Short-term engagement rewards can over-optimize for easy completions unless balanced against edit length and downstream code retention."
+    ],
+    "links": [
+      { "label": "Cursor Engineering: Improving Cursor Tab with Online RL", "url": "https://cursor.com/blog/tab-rl" }
+    ]
+  },
+  {
+    "slug": "intercom-fin-apex",
+    "title": "Intercom Fin Apex 1.0 & 2.0",
+    "company": "Intercom (acquired by Salesforce)",
+    "industry": "Customer Support",
+    "year": "2026",
+    "modelSize": "Lean Vertical (Undisclosed Small/Mid)",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Purpose-Built Vertical CX Suite (Apex / Flash / Procedures)",
+    "methods": ["SFT", "RL"],
+    "methodLabel": "Vertical SFT + Policy/Abstention RL",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "~76%", "label": "Autonomous resolution rate" },
+      { "value": "<4 sec", "label": "End-to-end response latency" },
+      { "value": "$0.99", "label": "Pay-per-resolution pricing" },
+      { "value": "$3.6B", "label": "Salesforce acquisition validation" }
+    ],
+    "summary": "Intercom moved off generic frontier API wrappers to post-train its own vertical customer support model family (Fin Apex), beating GPT-5.4 and Claude Sonnet 4.6 on CX accuracy, hallucination rates, and unit economics.",
+    "businessValueAnalysis": "Arguably the clearest commercial proof that vertical post-training creates massive enterprise equity value. Charging $0.99 per successful resolution means every 1% gain in autonomous resolution and every drop in inference cost flows straight into gross margin. Double-digit hallucination drops unlock risk-averse enterprise customers. Salesforce's $3.6B acquisition underscored that proprietary post-trained vertical models command strategic multiples that thin prompt wrappers cannot.",
+    "problemContext": "Generic frontier models frequently guess when knowledge-base articles are incomplete, violate company refund/escalation policies, and run too slowly/expensively for voice and high-volume chat.",
+    "technicalRecipe": {
+      "architecture": "Specialized vertical model family: Apex (core), Apex Flash (ultra-low-latency voice/chat), Apex for Procedures (multi-step business workflows)",
+      "trainingStack": "Internal vertical post-training stack over proprietary historical customer support tickets",
+      "dataAndHarness": "Millions of real historical customer service interactions, resolved ticket threads, and strict enterprise knowledge-base grounding.",
+      "rewardDesign": "RL alignment optimizing strict KB grounding, procedure adherence, and calibrated abstention (asking clarifying questions or escalating cleanly instead of hallucinating)."
+    },
+    "quantifiedResults": [
+      "Immediate multi-percentage-point resolution lift over frontier models, pushing autonomous resolution rates to ~76%.",
+      "Double-digit percentage reduction in hallucinations compared to GPT-5.4 and Claude Sonnet 4.6 on customer support evaluations.",
+      "Sub-4-second response latency at a fraction of frontier inference cost."
+    ],
+    "keyLearnings": [
+      "Split your serving fleet by task latency: pair an ultra-fast Flash variant (voice/triage) with a procedure-specialized variant (multi-step workflows).",
+      "In enterprise customer-facing AI, training explicit abstention and clean human escalation creates more trust and ROI than chasing marginal reasoning scores.",
+      "Outcome-aligned pricing ($0.99/resolution) directly translates post-training accuracy and latency gains into measurable revenue and margin."
+    ],
+    "watchouts": [
+      "Requires millions of high-signal historical interactions and strict customer-data isolation/governance to train legally across tenants."
+    ],
+    "links": [
+      { "label": "VentureBeat: Intercom's Post-Trained Fin Apex 1.0 Beats GPT-5.4 & Claude Sonnet 4.6", "url": "https://venturebeat.com/technology/intercoms-new-post-trained-fin-apex-1-0-beats-gpt-5-4-and-claude-sonnet-4-6" }
+    ]
+  },
+  {
+    "slug": "baseten-medical-scribes-isft",
+    "title": "Baseten Medical Scribes (Iterative SFT)",
+    "company": "Baseten (Base Labs)",
+    "industry": "Healthcare",
+    "year": "2026",
+    "modelSize": "32B",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Qwen3-32B",
+    "methods": ["SFT", "Distillation"],
+    "methodLabel": "Iterative SFT (iSFT) + Frontier Grader Repair",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "66–78%", "label": "Normalized accuracy (vs 52–56% SFT)" },
+      { "value": "25K tok", "label": "Ambient clinical transcript context" },
+      { "value": "1–2", "label": "Repair rounds per training note" },
+      { "value": "r=256", "label": "LoRA adapter (alpha=32, lr=2e-4)" }
+    ],
+    "summary": "Baseten trained Qwen3-32B for dental and Emergency Department clinical note generation using Iterative SFT (iSFT), where a frontier judge grades and repairs failed drafts before training—beating standard distillation by +14–22 points.",
+    "businessValueAnalysis": "Clinical scribing is a high-volume, HIPAA-sensitive workflow where every hallucinated dosage or missed clinical finding creates liability. Running closed frontier models on 25,000-token ambient audio transcripts is slow and costly. By using the frontier model only offline during data creation (as a grader/repairer) and deploying Qwen3-32B in a private VPC, healthcare teams achieve frontier-beating clinical strictness with fixed, HIPAA-compliant serving costs and far lower compute than full RL.",
+    "problemContext": "Standard SFT distilled directly from frontier outputs plateaued at 52%–56% normalized accuracy because even frontier generators make subtle structural and clinical omissions on 25k-token transcripts. Full online RL was expensive and suffered from sparse numeric feedback.",
+    "technicalRecipe": {
+      "architecture": "Qwen3-32B with LoRA (rank=256, alpha=32, dropout=0, constant lr=2e-4)",
+      "trainingStack": "Iterative SFT (iSFT) pipeline with Gemini-2.5-Pro (max thinking) acting as expert rubric grader & targeted repairer",
+      "dataAndHarness": "25,000 clinical transcription-to-note examples across dental (6-point rubric) and Emergency Department (5-point rubric) workflows.",
+      "rewardDesign": "Dense textual rubric grading by clinician-designed rubrics; drafts failing any criterion undergo 1–2 repair loops until 100% passing, yielding clean (x → y*) SFT targets."
+    },
+    "quantifiedResults": [
+      "Standard distilled SFT plateaued at 52%–56% normalized accuracy at 25,000 examples.",
+      "Iterative SFT (iSFT) jumped to 66%–78% normalized accuracy—rivaling or surpassing closed frontier baselines.",
+      "Significantly cheaper and faster to compute than full multi-round online RL while capturing dense rubric feedback."
+    ],
+    "keyLearnings": [
+      "Invert the role of frontier models: they are far more reliable as rubric graders and draft repairers than as one-shot gold generators.",
+      "Invest multi-week domain expert effort into the rubric grader first—the grader is the true performance ceiling.",
+      "Fixing the model's own mistakes before SFT ('repaired on-distribution targets') solves much of standard distillation's quality ceiling without RL instability."
+    ],
+    "watchouts": [
+      "If the rubric grader has blind spots or inconsistencies, iSFT will faithfully bake those exact errors into the student weights.",
+      "High-rank LoRA (r=256) was necessary here—tiny ranks (r=8/16) can underfit long-context structured medical templates."
+    ],
+    "links": [
+      { "label": "Baseten Labs: Iterative SFT for Medical Scribes", "url": "https://labs.baseten.co/articles/iterative-sft" }
+    ]
+  },
+  {
+    "slug": "harvey-legal-agent-suite",
+    "title": "Harvey Legal Agent Post-Training Suite",
+    "company": "Harvey (with Baseten, Applied Compute, Engram)",
+    "industry": "Legal AI",
+    "year": "2026",
+    "modelSize": "9B / 27B / 35B-A3B",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Qwen3.5-9B, Qwen3.5-27B, Qwen3.6-35B-A3B, Qwen3.8-27B",
+    "methods": ["SFT", "RL", "Distillation"],
+    "methodLabel": "GRPO + Iterative SFT + Hybrid Rewards + Self-Study",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "-67%", "label": "Grep tool calls (9B GRPO)" },
+      { "value": "-50.3%", "label": "Input tokens (35B-A3B RL)" },
+      { "value": "29.9→63%", "label": "M&A rubric pass rate (RLM)" },
+      { "value": "88k→36.7k", "label": "Trajectory tokens (Engram 27B)" }
+    ],
+    "summary": "Harvey published the richest enterprise post-training series of 2026, showing across 9B, 27B, and 35B-A3B open models how GRPO, iterative SFT compaction, hybrid code+judge rewards, and parametric firm-knowledge study slash tokens and double legal pass rates.",
+    "businessValueAnalysis": "BigLaw document review, M&A due diligence (data rooms up to 80M tokens), and precedent research consume massive token volumes where every redundant tool call adds seconds of lawyer wait time and dollars of inference spend. Harvey demonstrated that targeted post-training of 9B–35B-A3B models directly cuts serving costs by 30%–58% per query while doubling rubric pass rates—making high-precision agentic legal workflows commercially sustainable at enterprise margins.",
+    "problemContext": "Out-of-the-box open models thrash in large legal data rooms: issuing redundant grep calls, overflowing context windows without synthesizing intermediate memos, failing strict citation-to-sentence support in review tables, and struggling to locate firm-specific precedents.",
+    "technicalRecipe": {
+      "architecture": "Four specialized recipes: (1) Qwen3.5-9B LAB agent; (2) Qwen3.5-27B Compaction agent; (3) Qwen3.6-35B-A3B Review-Table agent; (4) Qwen3.8-27B Engram firm-knowledge agent.",
+      "trainingStack": "Baseten Loops (GRPO & iSFT), Applied Compute AC2 (async RL), Engram (parameter-efficient self-study distillation + RL on self-generated problems).",
+      "dataAndHarness": "Case-specific Legal Agent Benchmark (LAB) rubrics, production review-table harnesses, and synthetic/firm legal corpora up to 80M document tokens.",
+      "rewardDesign": "Rubrics-as-Rewards (Claude Haiku 4.5 / LLM judges) for open-ended legal deliverables; hybrid Code + LLM-Judge rewards for Review Tables (code checks schema/verifiable fields, LLM verifies extraction & supporting sentence citations)."
+    },
+    "quantifiedResults": [
+      "Qwen3.5-9B LAB Agent: 40 GRPO steps cut redundant grep calls by 67% while improving legal deliverables.",
+      "Qwen3.6-35B-A3B Review-Table Agent: Agentic search RL matched fixed-retrieval quality while using 50.3% fewer input tokens and 28.6% fewer output tokens.",
+      "Qwen3.5 M&A RLM Agent (Baseten): RL doubled rubric pass rate from 29.9% to 63.0% and boosted document coverage from ~62% to 96%.",
+      "Qwen3.8-27B Firm Knowledge (Engram): Self-study distillation + RL cut average inference tokens from 88,186 (base) to 36,742 (high study effort) and found the first relevant precedent in 3.73 vs. 5.94 turns."
+    ],
+    "keyLearnings": [
+      "Match the method to the subtask: use iSFT for context compaction memos, GRPO for tool efficiency, hybrid code+LLM rewards for structured extraction, and self-study distillation+RL for static firm knowledge.",
+      "Small-active MoE models like Qwen3.6-35B-A3B (only 3B active parameters!) hit an extraordinary cost-latency-intelligence sweet spot for agentic search.",
+      "Combine deterministic code verifiers (schemas, citations, dates) with LLM rubric judges wherever possible to anchor rewards against hacking."
+    ],
+    "watchouts": [
+      "Long-horizon legal rollouts easily reach hundreds of thousands of tokens—compaction or subagent delegation is mandatory before scaling RL.",
+      "Pure rubric judges without grounding checks can be gamed by verbose legal prose."
+    ],
+    "links": [
+      { "label": "Harvey × Baseten: Post-Training Open Legal Agents", "url": "https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research" },
+      { "label": "Harvey × Applied Compute: Frontier Review-Table Models", "url": "https://www.harvey.ai/blog/training-frontier-review-table-models-with-applied-compute" },
+      { "label": "Harvey × Baseten: Post-Training RLM Agents for M&A Diligence", "url": "https://www.harvey.ai/blog/post-training-rlm-agents-for-m-and-a-diligence" },
+      { "label": "Engram × Harvey: Legal Agents with Memory", "url": "https://engram.com/blog/legal-agents-with-memory" }
+    ]
+  },
+  {
+    "slug": "cognition-swe-grep",
+    "title": "Cognition SWE-grep & SWE-grep-mini",
+    "company": "Cognition (Devin / Windsurf)",
+    "industry": "Developer Tools",
+    "year": "2025–2026",
+    "modelSize": "Small / Mini Fast-Context Model",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Specialized Fast-Context RL + Distilled Mini",
+    "methods": ["RL", "Distillation"],
+    "methodLabel": "Multi-Turn RL → Distillation → RL",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": ">2,800 tok/s", "label": "SWE-grep-mini serving speed" },
+      { "value": "≤4 turns", "label": "Hard retrieval horizon" },
+      { "value": "8× parallel", "label": "Concurrent tool calls per turn" },
+      { "value": "-60% wait", "label": "Removes sequential search bottleneck" }
+    ],
+    "summary": "Cognition decoupled codebase retrieval from code writing by training dedicated fast-context subagents (SWE-grep & distilled SWE-grep-mini) via multi-turn RL to execute up to 8 parallel searches per turn and hand clean file slices to the flagship model.",
+    "businessValueAnalysis": "Solves the #1 UX and cost bottleneck in enterprise coding agents. Standard frontier agents spend >60% of their first turn running slow sequential grep/read calls that pollute the main context window with irrelevant files. Offloading retrieval to a tiny RL+distilled subagent running at 2,800+ tok/s slashes wall-clock latency to seconds, prevents context rot, and sharply cuts expensive frontier input tokens.",
+    "problemContext": "Embedding RAG is fast but fails on multi-hop code execution tracing. Standard agentic search with frontier models is accurate but painfully slow due to sequential round-trips.",
+    "technicalRecipe": {
+      "architecture": "Specialized read-only subagent with restricted cross-platform tools (`grep`, `read`, `glob`), distilled into SWE-grep-mini",
+      "trainingStack": "Multi-turn RL on real software engineering tasks → Distillation to mini student → Second RL round for efficiency",
+      "dataAndHarness": "Real repository search tasks with ground-truth relevant file paths and line ranges; max 4 turns, up to 8 parallel tool calls/turn.",
+      "rewardDesign": "Verifiable weighted F1 score over ground-truth retrieved files and exact line ranges."
+    },
+    "quantifiedResults": [
+      "SWE-grep-mini serves at >2,800 tokens/second, completing deep multi-hop codebase retrieval in mere seconds.",
+      "Emergent parallel search behavior: naturally learned to pack up to 8 concurrent tool calls per turn within a 4-turn budget.",
+      "Cleanly isolates read/retrieval tokens from the primary reasoning/editing model's context window."
+    ],
+    "keyLearnings": [
+      "Decouple 'Read/Retrieve' from 'Reason/Write'—a small RL-trained search specialist makes your entire compound agent faster, cheaper, and more accurate.",
+      "RL → Distill → RL is a powerhouse recipe for hitting extreme serving speed without sacrificing parallel multi-turn strategy.",
+      "File/line F1 is a clean, cheap, verifiable reward signal that transfers to any enterprise document or log search workflow."
+    ],
+    "watchouts": [
+      "Requires careful parallel tool-execution sandboxing so 8 concurrent tool calls don't overload local disk or search backends."
+    ],
+    "links": [
+      { "label": "Cognition Engineering: Introducing SWE-grep & Fast Context", "url": "https://cognition.ai/blog/swe-grep" }
+    ]
+  },
+  {
+    "slug": "openpipe-art-e",
+    "title": "OpenPipe ART·E (Email Search Agent)",
+    "company": "OpenPipe",
+    "industry": "Enterprise Productivity",
+    "year": "2025",
+    "modelSize": "14B",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Qwen2.5-14B-Instruct",
+    "methods": ["RL"],
+    "methodLabel": "Multi-Turn GRPO (ART + Unsloth + vLLM)",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "64× cheaper", "label": "Inference cost vs. OpenAI o3" },
+      { "value": "5× faster", "label": "End-to-end task latency vs. o3" },
+      { "value": "60% wins", "label": "Solved queries that o3 missed" },
+      { "value": "1× H100", "label": "Trained in <24 hours (open code)" }
+    ],
+    "summary": "OpenPipe's open-source ART·E blueprint proved that a single H100 running multi-turn GRPO on Qwen2.5-14B can beat OpenAI o3 on realistic enterprise email search at 1/64th the cost and 5× the speed.",
+    "businessValueAnalysis": "Demystified agentic RL for mid-market engineering teams. Before ART·E, many teams assumed multi-turn RL required frontier-lab GPU clusters. Training a 14B open model on 1× H100 in under a day to deliver 64× lower inference cost and 5× faster responses on real inbox QA gave enterprise teams an immediately reproducible ROI blueprint (later extended to MCP·RL for SQL/file/API tools using the RULER judge).",
+    "problemContext": "Answering complex multi-hop questions across messy corporate email inboxes (Enron benchmark) requires iterative keyword searches, date filtering, and reading threads—expensive and slow with frontier reasoning APIs.",
+    "technicalRecipe": {
+      "architecture": "Qwen2.5-14B-Instruct with LoRA inside a 10-turn tool-calling harness (max 2,048 output tokens/turn)",
+      "trainingStack": "OpenPipe ART (Agent Reinforcement Trainer) + GRPO + Unsloth memory kernels + vLLM rollout server + sample packing",
+      "dataAndHarness": "Enron Email Dataset split into realistic natural-language inbox questions requiring multi-step search, filtering, and citation.",
+      "rewardDesign": "Verifiable answer accuracy against ground-truth inbox answers (and RULER relative LLM-judge in ART's companion MCP·RL toolkit)."
+    },
+    "quantifiedResults": [
+      "Outperformed OpenAI o3 on complex email search, answering 60% of the hard queries that o3 missed.",
+      "~5× faster execution latency than o3.",
+      "~64× cheaper per query to serve than o3.",
+      "Full training job completed on a single H100 GPU in under 24 hours."
+    ],
+    "keyLearnings": [
+      "You do NOT need a 64-GPU cluster to get dramatic multi-turn RL wins—14B + LoRA + GRPO + Unsloth + vLLM fits on a single H100.",
+      "Open-source reference implementations (ART·E rollout loop, reward config, packing) save weeks of subtle RL bug hunting.",
+      "Bounded internal search tasks (email, Slack, Jira, Confluence, CRM) are among the highest-ROI candidates for 7B–14B GRPO."
+    ],
+    "watchouts": [
+      "Rollout-level vs. token-level loss normalization matters significantly when trajectory lengths vary widely across turns.",
+      "Avoid arbitrary tight turn limits during training if valid multi-hop searches need extra steps to recover."
+    ],
+    "links": [
+      { "label": "OpenPipe Blog: ART·E Email Search Agent", "url": "https://openpipe.ai/blog/art-e-mail-agent" },
+      { "label": "GitHub: OpenPipe/ART", "url": "https://github.com/OpenPipe/ART" }
+    ]
+  },
+  {
+    "slug": "marketplace-slms-booking-checkr-uber",
+    "title": "High-Volume Marketplace & Compliance SLMs (Booking.com, Checkr, Uber, DoorDash)",
+    "company": "Booking.com · Checkr · Uber · DoorDash · Ramp",
+    "industry": "E-Commerce, Logistics & Compliance",
+    "year": "2024–2026",
+    "modelSize": "3.8B–8B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Llama-3/3.1-8B, Phi-3-mini (3.8B), Qwen-4B/8B",
+    "methods": ["SFT", "Distillation"],
+    "methodLabel": "Teacher Distillation + LoRA SFT + Speculative Decoding",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "30× faster", "label": "Checkr Llama-3-8B vs. GPT-4" },
+      { "value": "5× cheaper", "label": "Checkr production serving cost" },
+      { "value": ">90%", "label": "Teacher-student gap closed (Booking.com)" },
+      { "value": "~96% acc", "label": "Fine-tuned 3.8B vs 80% GPT-4o on strict taxo" }
+    ],
+    "summary": "High-throughput platforms like Booking.com, Checkr, Uber, and DoorDash systematically replaced frontier API calls on classification, tagging, and query understanding with distilled & LoRA-tuned 3.8B–8B models.",
+    "businessValueAnalysis": "The bread-and-butter ROI engine of production AI. At millions of daily requests (search filters, dish tagging, background-check court records, ticket classification), frontier APIs blow up unit economics and P99 latency SLAs. Because these workflows are bounded and taxonomy-driven, offline teacher consensus labeling + LoRA SFT/KD on 4B–8B models consistently matches or beats zero-shot frontier models at 5×–50× lower cost and sub-50ms latency.",
+    "problemContext": "Marketplace and compliance pipelines process millions of noisy records daily with rigid JSON/taxonomy requirements. Frontier models over-think, drift from exact internal taxonomies, and cannot meet real-time P99 latency budgets economically.",
+    "technicalRecipe": {
+      "architecture": "3.8B–8B open-weight models served on vLLM / TensorRT-LLM with dynamic LoRA hot-swapping and Medusa speculative decoding (Booking.com)",
+      "trainingStack": "Ray / Anyscale distributed data pipelines + Hugging Face PEFT/TRL + DeepSpeed / Axolotl; Ramp explored portable base-agnostic adapters (PorTAL)",
+      "dataAndHarness": "DoorDash & Uber generate consensus synthetic labels offline using frontier teachers for long-tail queries and marketplace items; Checkr trains on curated court-record classification taxonomies.",
+      "rewardDesign": "Supervised cross-entropy / distillation loss on cleaned, consensus-filtered teacher labels + strict schema evaluation."
+    },
+    "quantifiedResults": [
+      "Checkr: Fine-tuned Llama-3-8B matched/exceeded zero-shot GPT-4 on background-check classification while running 30× faster at 5× lower cost.",
+      "Booking.com: Knowledge distillation paired with Medusa speculative decoding closed >90% of the student-teacher quality gap for Smart Filters.",
+      "Financial/regulated text classification: Fine-tuned 3.8B–8B SLMs hit ~96% taxonomy accuracy vs. ~80% for zero-shot GPT-4o.",
+      "Distil Labs benchmarks (2025–2026): Specialized 4B Qwen models matched or beat 100B+ base models on 7 of 8 standard enterprise extraction/QA tasks."
+    ],
+    "keyLearnings": [
+      "Do NOT jump straight to RL for high-volume classification, extraction, tagging, or routing—clean teacher distillation + LoRA SFT on a 4B–8B model is simpler, faster, and delivers immediate 5×–30× ROI.",
+      "Pair distilled SLMs with speculative decoding (Medusa/EAGLE) and dynamic multi-LoRA serving in vLLM to serve dozens of vertical tasks from one GPU pool.",
+      "Watch 2026 frontier API ToS restrictions on distillation: increasingly use permissive open-weight teachers (Qwen, Llama, GLM) or internal expert consensus pipelines."
+    ],
+    "watchouts": [
+      "Off-policy distillation works great for single-turn structured tasks, but struggles on long multi-turn agent recovery (use OPD or RL there).",
+      "Base-model upgrades require re-tuning LoRA adapters unless you invest in portable adaptation or clean automated retraining pipelines."
+    ],
+    "links": [
+      { "label": "Booking.com AI: Practical LLM Evaluation & Production Tips", "url": "https://booking.ai/llm-evaluation-practical-tips-at-booking-com-1b038a0d6662" },
+      { "label": "ZenML LLMOps Production Database", "url": "https://www.zenml.io/llmops-database" }
+    ]
+  },
+  {
+    "slug": "databricks-tao",
+    "title": "Databricks TAO (Test-Time Adaptive Optimization)",
+    "company": "Databricks (Mosaic Research)",
+    "industry": "Enterprise Data & Analytics",
+    "year": "2025–2026",
+    "modelSize": "8B & 70B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Llama-3.1-8B & Llama-3.3-70B",
+    "methods": ["RL"],
+    "methodLabel": "Test-Time Compute RL on Unlabeled Queries",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "0 labels", "label": "Human-labeled outputs required" },
+      { "value": "> SFT", "label": "Beat SFT trained on 1000s of labels" },
+      { "value": "0× latency", "label": "Extra runtime inference overhead" },
+      { "value": "GPT-4o/o3-mini", "label": "Parity tier reached by Llama 8B/70B" }
+    ],
+    "summary": "Databricks TAO removes the enterprise data-labeling bottleneck by harvesting unlabeled production queries, spending test-time compute during training to sample & score candidates, and distilling the winners into weights via RL.",
+    "businessValueAnalysis": "Most enterprises have millions of historical prompts/queries sitting in logs (SQL queries, DocQA requests, support prompts) but almost zero clean human-written gold outputs. Paying subject-matter experts to label thousands of outputs stalls projects for months. TAO turns raw unlabeled usage logs + automated reward scoring into predictable, compute-scalable accuracy gains—with zero extra latency at serving time.",
+    "problemContext": "Traditional enterprise SFT is bottlenecked by the 'data labeling tax'—hiring experts to author thousands of gold input-output pairs for every internal database schema or document set.",
+    "technicalRecipe": {
+      "architecture": "Open-weight Llama 8B and 70B models served at standard single-pass inference speed after training",
+      "trainingStack": "Databricks Mosaic TAO pipeline connected to Unity Catalog query logs",
+      "dataAndHarness": "Raw, unlabeled historical enterprise user inputs (e.g., enterprise SQL generation and complex document QA).",
+      "rewardDesign": "Exploratory multi-candidate generation with strategic prompt variations → automated scoring via Databricks Reward Model (DBRM) or programmatic SQL/execution verifiers → RL weight updates on best-of-N."
+    },
+    "quantifiedResults": [
+      "Outperformed traditional SFT trained on thousands of human-labeled examples on enterprise SQL generation and document QA.",
+      "Elevated efficient open-weight Llama 8B and 70B models to parity with GPT-4o and o3-mini on targeted enterprise workflows.",
+      "Multi-task unlabeled TAO delivered +2.4% broad enterprise benchmark gain on Llama-3.3-70B with predictable compute scaling."
+    ],
+    "keyLearnings": [
+      "Shift test-time compute from inference (slow, expensive every call) into training (amortized once into model weights).",
+      "Unlabeled production input logs are a goldmine when paired with programmatic verifiers (SQL execution, schema validation) or a calibrated domain reward model.",
+      "Predictable scaling with training compute beats unpredictable human annotation timelines."
+    ],
+    "watchouts": [
+      "Still requires a trustworthy automated verifier or reward model—if DBRM/judge disagrees with human preferences, TAO amplifies judge bias."
+    ],
+    "links": [
+      { "label": "Databricks Blog: TAO — Using Test-Time Compute to Train Efficient LLMs Without Labeled Data", "url": "https://www.databricks.com/blog/tao-using-test-time-compute-train-efficient-llms-without-labeled-data" }
+    ]
+  },
+  {
+    "slug": "nvidia-toolorchestra",
+    "title": "NVIDIA ToolOrchestra & Nemotron-Orchestrator-8B",
+    "company": "NVIDIA Research",
+    "industry": "Cross-Industry Agentic Systems",
+    "year": "2025–2026",
+    "modelSize": "8B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Nemotron-Orchestrator-8B (Qwen/Nemotron)",
+    "methods": ["RL"],
+    "methodLabel": "Multi-Objective GRPO Orchestrator RL",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "37.1% HLE", "label": "Outperformed GPT-5 on HLE" },
+      { "value": "~30% cost", "label": "Monetary cost vs. monolithic frontier" },
+      { "value": "2.5×", "label": "Efficiency gain via smart routing" },
+      { "value": "8B params", "label": "Compact orchestrator footprint" }
+    ],
+    "summary": "NVIDIA trained an 8B orchestrator model with GRPO using outcome, efficiency, and user-preference rewards to dynamically coordinate tools and specialist models—beating GPT-5 on Humanity's Last Exam at 30% of the cost.",
+    "businessValueAnalysis": "Proves the architectural economics of NVIDIA's 'Small Language Models are the Future of Agentic AI' thesis. Instead of sending every agent turn to an expensive monolithic frontier LLM, an 8B post-trained router/orchestrator delegates routine tool calls to cheap local SLMs and escalates to a frontier model only when genuinely necessary—cutting total enterprise agent bills by ~70% while improving end-to-end accuracy.",
+    "problemContext": "Monolithic frontier agents burn massive token budgets running trivial routing, parsing, and tool-invocation loops on 500B+ parameter endpoints.",
+    "technicalRecipe": {
+      "architecture": "8B orchestrator model coordinating heterogeneous tools, code execution, web search, and tiered specialist/frontier models",
+      "trainingStack": "ToolOrchestra end-to-end GRPO RL framework + ToolScale synthetic multi-tool environment pipeline",
+      "dataAndHarness": "Synthetically generated multi-turn tool-and-model orchestration tasks spanning reasoning, search, and domain APIs.",
+      "rewardDesign": "Composite multi-objective reward balancing (1) final task outcome accuracy, (2) monetary/compute efficiency penalty, and (3) user routing preferences."
+    },
+    "quantifiedResults": [
+      "Nemotron-Orchestrator-8B scored 37.1% on Humanity's Last Exam (HLE), outperforming monolithic GPT-5.",
+      "Achieved ~2.5× higher overall efficiency at roughly 30% of the monetary inference cost.",
+      "Demonstrated strong generalization to unseen toolsets and dynamic cost budgets."
+    ],
+    "keyLearnings": [
+      "You don't have to replace frontier models completely—post-train an 8B orchestrator to call cheap SLMs 80% of the time and reserve frontier models for the hardest 20%.",
+      "Explicitly include dollar/latency cost in the RL reward function so the model learns cost-aware tool selection.",
+      "Use decoupled reward normalization (NVIDIA's companion GDPO paper, arXiv:2601.05242) when combining accuracy + efficiency + preference rewards."
+    ],
+    "watchouts": [
+      "Routing policies depend on the relative pricing and capabilities of downstream models—re-tune efficiency weights when backend model pricing shifts."
+    ],
+    "links": [
+      { "label": "Paper: Small Language Models are the Future of Agentic AI", "url": "https://arxiv.org/abs/2506.02153" },
+      { "label": "Paper: ToolOrchestra — Efficient Model and Tool Orchestration", "url": "https://arxiv.org/abs/2511.21689" },
+      { "label": "Paper: GDPO — Multi-Reward RL Normalization (NVIDIA)", "url": "https://arxiv.org/abs/2601.05242" }
+    ]
+  },
+  {
+    "slug": "thinking-machines-bridgewater-opd",
+    "title": "Thinking Machines × Bridgewater: On-Policy Distillation & Expert Financial Judgment",
+    "company": "Thinking Machines Lab & Bridgewater AIA Labs",
+    "industry": "Finance & Investment Research",
+    "year": "2025–2026",
+    "modelSize": "Student SLMs & Open-Weight Experts",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Qwen3 Open-Weight Family via Tinker",
+    "methods": ["Distillation", "RL"],
+    "methodLabel": "On-Policy Distillation (OPD) + CISPO",
+    "businessValueTier": "Tier 1",
+    "businessValueTag": "Proven Production ROI",
+    "sourceOrigin": ["Obsidian Vault", "Apple Notes", "Web Research"],
+    "headlineMetrics": [
+      { "value": "84.7% acc", "label": "vs. 50–78% frontier prompting ceiling" },
+      { "value": "1/14th", "label": "Inference cost vs. frontier models" },
+      { "value": "9×–30×", "label": "OPD compute savings vs. sparse RL" },
+      { "value": "Dense KL", "label": "Per-token reverse-KL on student rollouts" }
+    ],
+    "summary": "Thinking Machines popularized On-Policy Distillation (OPD) and partnered with Bridgewater to replicate expert investor judgment at 84.7% accuracy and 1/14th the cost—demonstrating 'differentiated intelligence' where tacit enterprise taste beats generic frontier prompting.",
+    "businessValueAnalysis": "Proves why prompt engineering hits a hard ceiling in high-stakes domains like institutional finance, underwriting, and investment research: senior experts cannot fully articulate tacit 'taste' in a system prompt. Post-training open weights on curated expert judgments using CISPO + OPD breaks through the 78% prompting ceiling to 84.7% while cutting serving cost by 14×—and OPD itself cuts distillation/RL compute by 9×–30× for any team compressing a large teacher into a small production student.",
+    "problemContext": "Frontier models prompted on financial news filtering and central-bank signal evaluation plateaued at 50%–78% accuracy. Separately, standard off-policy distillation suffers from exposure bias while standard outcome-only RL wastes huge compute on sparse rewards.",
+    "technicalRecipe": {
+      "architecture": "Open-weight Qwen3 models post-trained via Tinker API (and student SLMs distilled via OPD)",
+      "trainingStack": "Thinking Machines Tinker API; interleaved batching, CISPO loss with asymmetric clipping, and On-Policy Distillation (per-token reverse KL against teacher logprobs on student-sampled rollouts)",
+      "dataAndHarness": "Proprietary high-signal annotations from senior Bridgewater investment researchers on macro/financial news judgment.",
+      "rewardDesign": "In OPD: dense per-token reverse-KL supervision from a stronger teacher evaluated along the student's own generated trajectories; paired with expert-judgment CISPO RL."
+    },
+    "quantifiedResults": [
+      "Achieved 84.7% accuracy on expert financial judgment tasks (surpassing the 50%–78% frontier prompting ceiling).",
+      "Reduced inference cost to ~1/14th of comparable frontier model deployments.",
+      "On-Policy Distillation delivered 9×–30× compute efficiency gains over sparse outcome-based RL while fixing off-policy exposure bias."
+    ],
+    "keyLearnings": [
+      "Whenever you have a strong open-weight teacher (e.g., 235B/397B) and want a small fast student (8B–32B), On-Policy Distillation (OPD) gives you dense token-level credit assignment AND on-policy error recovery at 9×–30× lower compute than RL.",
+      "Tacit expert taste (investment judgment, editorial quality, clinical intuition) cannot be prompted—collect small, ultra-high-signal expert annotation sets and train weights.",
+      "LoRA matches full fine-tuning for RL and small-dataset post-training when applied to all linear layers with properly tuned LR (Schulman, 'LoRA Without Regret')."
+    ],
+    "watchouts": [
+      "True cross-model OPD requires token-level logprob access to a stronger teacher with a compatible tokenizer (not possible via black-box closed APIs).",
+      "Do not confuse true cross-model OPD with fragile self-distillation using privileged hints—check OOD generalization carefully."
+    ],
+    "links": [
+      { "label": "Thinking Machines: On-Policy Distillation", "url": "https://thinkingmachines.ai/blog/on-policy-distillation/" },
+      { "label": "Thinking Machines × Bridgewater: Expert Judgment in Financial Tasks", "url": "https://thinkingmachines.ai/news/learning-to-replicate-expert-judgment-in-financial-tasks/" },
+      { "label": "Thinking Machines: LoRA Without Regret", "url": "https://thinkingmachines.ai/blog/lora/" }
+    ]
+  },
+  {
+    "slug": "paper-instruments-ultramarine",
+    "title": "Paper Instruments Ultramarine 1 Flash",
+    "company": "Paper Instruments",
+    "industry": "Corporate Knowledge Work",
+    "year": "2026",
+    "modelSize": "Flash-Class Open Model (GLM-5.3 Flash)",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "GLM-5.3 Flash",
+    "methods": ["RL"],
+    "methodLabel": "Non-Verifiable Rubric RL + LoRA (r=64)",
+    "businessValueTier": "Tier 2",
+    "businessValueTag": "Validated High-Potential",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "$0.13", "label": "Average cost per knowledge-work task" },
+      { "value": "-6.5%", "label": "Fewer tokens vs. base model" },
+      { "value": "6 / 6", "label": "Benchmarks beaten vs. base" },
+      { "value": "~$300K", "label": "Total data + R&D + 2-week RL budget" }
+    ],
+    "summary": "Paper Instruments scaled non-verifiable rubric RL on GLM-5.3 Flash with LoRA (r=64) inside an open office-document harness (Feather + Paper Office), solving complex corporate deliverables at ~$0.13/task.",
+    "businessValueAnalysis": "Shows the exact economics and recipe for non-verifiable enterprise knowledge work (diligence memos, financial models, litigation chronologies, board decks). While $300K total R&D is a serious investment for a startup, it proves a small team can train a fast Flash-tier open model to rival top proprietary reasoning models at ~$0.13 per multi-step document task—unlocking profitable SaaS margins for legal, finance, and consulting tools.",
+    "problemContext": "Unlike coding (unit tests) or fraud (chargebacks), corporate deliverables (.docx, .pptx, .xlsx) have no deterministic single right answer, making classic RLVR unusable.",
+    "technicalRecipe": {
+      "architecture": "GLM-5.3 Flash with LoRA (rank=64) operating inside open Feather harness + Paper Office tools (`paper-docx`, `paper-pptx`, `paper-xlsx`)",
+      "trainingStack": "Small-model curriculum experiments first → final 2-week RL training run hosted on Fireworks",
+      "dataAndHarness": "Synthesized corporate environments and professional knowledge-work tasks paired with real office file manipulation tools.",
+      "rewardDesign": "Domain-tailored, task-specific rubric verification systems converting complex document quality criteria into structured RL rewards."
+    },
+    "quantifiedResults": [
+      "Beat its GLM-5.3 Flash base model across all 6 evaluated knowledge-work benchmarks.",
+      "Generated 6.5% fewer tokens on average than the base model while raising deliverable quality.",
+      "Executed complex knowledge-work tasks at ~$0.13/task, scoring competitively against heavy closed frontier models on internal office suites."
+    ],
+    "keyLearnings": [
+      "Always run curriculum & reward-shaping experiments on a small cheap model before launching the final hosted RL run.",
+      "Co-design safe, structured file-editing tools (`paper-docx`, `paper-xlsx`) alongside the RL policy—clean tool affordances multiply RL gains.",
+      "LoRA r=64 is sufficient even for broad multi-domain non-verifiable RL when paired with strong synthetic rubric coverage."
+    ],
+    "watchouts": [
+      "Total budget (~$300K) was heavily weighted toward data synthesis and rubric curation, not just GPU hours—budget accordingly.",
+      "Internal benchmark wins must always be stress-tested against external/blind human expert reviews to rule out judge overfitting."
+    ],
+    "links": [
+      { "label": "Paper Instruments: Ultramarine 1 Flash — Scaling Non-Verifiable RL", "url": "https://www.paperinstruments.com/blog/ultramarine" }
+    ]
+  },
+  {
+    "slug": "harness-1-search-agent",
+    "title": "Harness-1 (State-Externalizing 20B Search Agent)",
+    "company": "UIUC · UC Berkeley · Chroma",
+    "industry": "Enterprise Search & Research",
+    "year": "2026",
+    "modelSize": "20B",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "20B Open-Weight Policy",
+    "methods": ["SFT", "RL"],
+    "methodLabel": "Tiny SFT Bootstrap (899 traces) + RL in Stateful Harness",
+    "businessValueTier": "Tier 2",
+    "businessValueTag": "Validated High-Potential",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "0.730", "label": "Curated recall (vs. 0.709 GPT-5.4)" },
+      { "value": "20B", "label": "Compact model parameter count" },
+      { "value": "899", "label": "SFT bootstrap trajectories only" },
+      { "value": "8", "label": "Cross-domain search benchmarks" }
+    ],
+    "summary": "Harness-1 proved a foundational enterprise design principle: offload bookkeeping (deduplication, candidate pools, context compression) to a stateful harness, and a 20B model trained with 899 SFT traces + RL beats GPT-5.4 on multi-domain search.",
+    "businessValueAnalysis": "Massive leverage for small-model deployments. Most teams fail with 8B–20B agents because they ask a small model to simultaneously juggle raw search transcripts, deduplicate documents, track budgets, AND make semantic decisions. Harness-1 demonstrates that moving deterministic bookkeeping into code lets a cheap 20B model outperform frontier giants across finance (SEC filings), patents, web, and multi-hop enterprise QA.",
+    "problemContext": "Standard search agents suffer from context bloat and reasoning collapse on smaller models when forced to manage raw search history and state internally inside the prompt window.",
+    "technicalRecipe": {
+      "architecture": "20B policy model coupled with an environment-side State-Externalizing Search Harness",
+      "trainingStack": "Two-stage pipeline: Stage 1 cold-start SFT → Stage 2 RL on domain-specific query splits (e.g., SEC financial filings)",
+      "dataAndHarness": "899 raw GPT-5.4 SFT trajectories for initial harness tool fluency, followed by thousands of RL search queries. Harness externally manages candidate pools, importance-tagged curated sets, verification records, and budget-aware context rendering.",
+      "rewardDesign": "Curated retrieval recall and evidence verification metrics decoupled from low-level transcript bookkeeping."
+    },
+    "quantifiedResults": [
+      "Achieved 0.730 average curated recall across 8 complex search benchmarks (web, finance, patents, multi-hop QA), beating GPT-5.4 (0.709) and Claude Sonnet 4.6.",
+      "Strong cross-domain generalization even when RL was concentrated on specific splits like SEC financial data."
+    ],
+    "keyLearnings": [
+      "Optimize the harness before scaling model weights: offload every deterministic bookkeeping task (deduplication, candidate tracking, budget rendering) to code.",
+      "You only need ~500–1,000 clean SFT traces to teach a 20B model a structured harness protocol before switching to RL.",
+      "State externalization shrinks context windows, which simultaneously makes RL training faster and production serving much cheaper."
+    ],
+    "watchouts": [
+      "Requires engineering discipline to maintain parity between training harness and production serving harness."
+    ],
+    "links": [
+      { "label": "Paper: Harness-1 — RL for Search Agents with State-Externalizing Harnesses", "url": "https://arxiv.org/abs/2606.02373" },
+      { "label": "VentureBeat: Open-Source Search Agent Harness-1 Outperforms GPT-5.4", "url": "https://venturebeat.com/orchestration/researchers-trained-an-open-source-ai-search-agent-harness-1-that-outperforms-gpt-5-4-on-recalling-relevant-information" }
+    ]
+  },
+  {
+    "slug": "together-agentica-deepswe",
+    "title": "Together × Agentica DeepSWE (32B Coding Agent)",
+    "company": "Together AI & Agentica (UC Berkeley)",
+    "industry": "Software Engineering",
+    "year": "2025",
+    "modelSize": "32B",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Qwen3-32B",
+    "methods": ["RL"],
+    "methodLabel": "Pure Multi-Turn RL (rLLM / GRPO++)",
+    "businessValueTier": "Tier 2",
+    "businessValueTag": "Validated High-Potential",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "32B", "label": "Open-weight dense Qwen3-32B" },
+      { "value": "100 steps", "label": "Max environment horizon" },
+      { "value": "64K", "label": "Context window during eval" },
+      { "value": "Pure RL", "label": "Zero SFT warm-start needed" }
+    ],
+    "summary": "DeepSWE trained Qwen3-32B from scratch with pure multi-turn RL inside real containerized repositories (rLLM), establishing open-source engineering recipes for long-horizon coding agents with unit-test rewards.",
+    "businessValueAnalysis": "Validates self-hosted 32B coding agents for IP-sensitive enterprises (defense, automotive, banking, pharma) that cannot send proprietary source repositories to external coding APIs. Also open-sourced the rLLM stack and concrete stability tricks (clip-higher, no KL penalty, compact reward shaping, length-invariant loss) now widely reused across enterprise RL.",
+    "problemContext": "Software engineering tasks require navigating multi-file repos, running shells/tests, reading stack traces, and iterating over up to 100 environment steps—where off-the-shelf 32B models stall.",
+    "technicalRecipe": {
+      "architecture": "Qwen3-32B dense open model",
+      "trainingStack": "rLLM framework (GRPO++ / DAPO-style clip-higher, token-level loss) across 64 H100 GPUs with containerized repo sandboxes",
+      "dataAndHarness": "Real GitHub issues and containerized test environments (up to 100 turns, 64K context).",
+      "rewardDesign": "Strict verifiable outcome reward: repository unit-test pass/fail inside isolated containers."
+    },
+    "quantifiedResults": [
+      "Set open-weight SOTA for 32B coding agents on SWE-Bench-Verified using pure RL without teacher SFT.",
+      "Demonstrated that test-time scaling (hybrid test + verifier reranking) compounds cleanly with RL-trained 32B weights."
+    ],
+    "keyLearnings": [
+      "When verifiable container tests exist (CI/CD pipelines, compilers, linters), pure RL on a 32B model unlocks genuine multi-step debugging behavior.",
+      "Sandboxed execution infrastructure (fast container cold starts, microVMs/gVisor) is half the battle in real-world agentic RL.",
+      "Clip-higher (asymmetric PPO/GRPO clipping) and removing overly tight KL penalties are essential to let 32B models explore longer tool strategies."
+    ],
+    "watchouts": [
+      "64 H100s for full-parameter 32B multi-turn SWE RL is non-trivial compute—smaller teams should start with LoRA + rLLM or OPD from a larger coding teacher."
+    ],
+    "links": [
+      { "label": "Together AI Blog: DeepSWE", "url": "https://www.together.ai/blog/deepswe" },
+      { "label": "GitHub: rllm-org/rllm", "url": "https://github.com/rllm-org/rllm" }
+    ]
+  },
+  {
+    "slug": "mercor-apex-and-nova-forge",
+    "title": "Mercor APEX-Agents (SkyRL) & Amazon Nova Forge",
+    "company": "Mercor · Applied Compute · AWS",
+    "industry": "Banking, Law, Consulting & Regulated Enterprise",
+    "year": "2025–2026",
+    "modelSize": "Mid-to-Large Open / Custom Novellas",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "GLM-4.7, Qwen Family, Amazon Nova Checkpoints",
+    "methods": ["RL", "SFT"],
+    "methodLabel": "Expert-Task RL (SkyRL) & Mid-Training Open-Forge",
+    "businessValueTier": "Tier 2",
+    "businessValueTag": "Validated High-Potential",
+    "sourceOrigin": ["Obsidian Vault", "Web Research"],
+    "headlineMetrics": [
+      { "value": "~2× pass", "label": "RL on <1,000 expert tasks (GLM-4.7)" },
+      { "value": "43 vs 72", "label": "Agent steps cut by 40% post-RL" },
+      { "value": "16→27%+", "label": "APEX Pass@1 lift via open SkyRL" },
+      { "value": "VPC/Audit", "label": "Mid-training blending in Nova Forge" }
+    ],
+    "summary": "Mercor's open SkyRL recipe proved that <1,000–2,000 expert-authored multi-app tasks nearly double knowledge-work pass rates and slash agent steps by 40%, while Amazon Nova Forge & Artificial Genius show how regulated enterprises blend proprietary data earlier in training for auditability.",
+    "businessValueAnalysis": "Two complementary strategic templates for regulated enterprises. Mercor's APEX-Agents shows that data quality beats scale—less than 2,000 high-craft expert tasks transform open models on investment banking, law, and consulting workflows (while cutting step count from 72 to 43!). Meanwhile, Amazon Nova Forge addresses enterprises that face catastrophic forgetting during late SFT by allowing secure data blending at mid-training checkpoints inside VPC-governed AWS infrastructure.",
+    "problemContext": "Complex cross-application enterprise knowledge work (spreadsheets + documents + tools) fails with naive prompting, while late-stage SFT on large proprietary corpora often degrades general reasoning or lacks regulatory provenance.",
+    "technicalRecipe": {
+      "architecture": "GLM-4.7 & Qwen open models (Mercor/SkyRL); custom Amazon Nova 'Novella' checkpoints (AWS Nova Forge)",
+      "trainingStack": "Open-source ApexAgents-SkyRL-Recipe + Harbor harness; AWS Bedrock/SageMaker Nova Forge mid-training + post-training",
+      "dataAndHarness": "874 to ~2,000 expert-created cross-app tasks (160K training / 256K eval context in SkyRL); blended proprietary + curated base corpora in Nova Forge.",
+      "rewardDesign": "Programmatic verifiers + calibrated LLM rubric judges (Mercor); deterministic output constraints & traceable provenance (Artificial Genius on Nova)."
+    },
+    "quantifiedResults": [
+      "RL without SFT warm-up on just 874 expert tasks yielded dramatic APEX-Agents gains, especially in corporate law.",
+      "Scaling to ~2,000 expert tasks nearly doubled pass rates and cut average agent steps from 72 (GLM-4.7 base) down to 43.",
+      "Open-source SkyRL recipe lifted Pass@1 from ~16% to >27% with clear, published debugging diagnostics."
+    ],
+    "keyLearnings": [
+      "Follow Mercor/SkyRL's golden debugging sequence before spending real compute: (1) verify exact token capture, (2) verify sampler-vs-trainer logprob alignment, (3) run a tiny overfit job on a handful of tasks to prove the reward signal actually moves the model.",
+      "874–2,000 deeply realistic, expert-crafted tasks beat 100,000 generic synthetic prompts.",
+      "When injecting large volumes of static domain knowledge in regulated industries, mid-training / continual pre-training blending (Nova Forge style) curbs forgetting better than heavy SFT."
+    ],
+    "watchouts": [
+      "SkyRL's largest runs (397B on 20× H200 nodes) are frontier-scale, but the exact same open recipe & diagnostics apply directly to 9B–35B models on 1–8 GPUs."
+    ],
+    "links": [
+      { "label": "Mercor: Expert Data Drives Model Performance", "url": "https://www.mercor.com/blog/expert-data-drives-model-performance/" },
+      { "label": "Mercor × SkyRL: Practical RL Training Guide", "url": "https://www.mercor.com/blog/training-frontier-knowledge-work-agents-a-397b-rl-training-guide-with-skyrl/" },
+      { "label": "AWS: Introducing Amazon Nova Forge", "url": "https://aws.amazon.com/blogs/aws/introducing-amazon-nova-forge-build-your-own-frontier-models-using-nova/" },
+      { "label": "AWS: Deterministic Models in Regulated Industries (Artificial Genius)", "url": "https://aws.amazon.com/blogs/machine-learning/overcoming-llm-hallucinations-in-regulated-industries-artificial-geniuss-deterministic-models-on-amazon-nova/" }
+    ]
+  }
+]

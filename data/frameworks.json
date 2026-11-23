@@ -1,0 +1,170 @@
+{
+  "frameworks": [
+    {
+      "name": "verl (Volcengine)",
+      "bestFor": "Production-grade distributed RL (PPO, GRPO, GSPO, DAPO) & On-Policy Distillation with flexible hybrid GPU placement.",
+      "hardware": "NVIDIA, AMD/ROCm, Ascend; single-node multi-GPU up to multi-node clusters. Trainer and rollout sampler share/swap GPUs dynamically.",
+      "multiStep": "Yes — AgentLoops support multi-turn tool-calling rollouts.",
+      "rubricJudge": "Yes — custom or generative reward functions return rubric scores.",
+      "rlAlgorithms": "PPO, GRPO, GSPO, DAPO, RLOO, REINFORCE++",
+      "distillation": "Built-in On-Policy Distillation (OPD) + SFT.",
+      "sweetSpot": "Midsize teams (8B–35B+) scaling from 4–8 GPUs to clusters; gold standard for async/hybrid throughput.",
+      "url": "https://github.com/verl-project/verl",
+      "docsUrl": "https://verl.readthedocs.io/en/latest/algo/opd.html"
+    },
+    {
+      "name": "SkyRL (UC Berkeley / Anyscale)",
+      "bestFor": "Asynchronous multi-turn agentic RL for enterprise workloads (proven in production by Coinbase Fraud Agent & Mercor APEX-Agents).",
+      "hardware": "1× high-VRAM GPU (e.g. RTX PRO 6000 96GB / H100) up to multi-node H200 clusters on Ray/Anyscale.",
+      "multiStep": "Yes — native multi-turn containerized & tool-calling environments (Harbor integration).",
+      "rubricJudge": "Yes — supports programmatic verifiers and LLM rubric judges.",
+      "rlAlgorithms": "GRPO, DAPO, CISPO, async off-policy stabilized RL",
+      "distillation": "SFT bootstrap + RL recipes.",
+      "sweetSpot": "Enterprise teams already on Ray/vLLM wanting battle-tested multi-turn agentic RL recipes.",
+      "url": "https://github.com/NovaSky-AI/SkyRL",
+      "docsUrl": "https://www.mercor.com/blog/training-frontier-knowledge-work-agents-a-397b-rl-training-guide-with-skyrl/"
+    },
+    {
+      "name": "PrimeRL + Prime Verifiers",
+      "bestFor": "Clean separation of RL environments/evals (Verifiers) and scalable async FSDP2 + vLLM training (PrimeRL) with OPD.",
+      "hardware": "RTX 3090/4090/5090, A100, H100, B200; 4B LoRA runs on 1× H100; scales cleanly to multi-node clusters.",
+      "multiStep": "Yes — Verifiers environments natively model multi-turn tool interactions.",
+      "rubricJudge": "Yes — built-in JudgeRubric with custom prompts and composable reward weights.",
+      "rlAlgorithms": "Async RL (GRPO/CISPO family) via PrimeRL; legacy Verifiers trainers deprecated.",
+      "distillation": "SFT + native On-Policy Distillation (OPD) in PrimeRL.",
+      "sweetSpot": "Teams building reusable evaluation environments first and plugging into clean async RL/OPD.",
+      "url": "https://github.com/PrimeIntellect-ai/prime-rl",
+      "docsUrl": "https://github.com/PrimeIntellect-ai/verifiers"
+    },
+    {
+      "name": "OpenPipe ART",
+      "bestFor": "Fastest on-ramp to multi-turn agentic GRPO (proven by ART·E 14B email agent beating o3 on 1× H100).",
+      "hardware": "1× NVIDIA GPU (co-located Unsloth/torchtune + vLLM alternating) or separated GPUs via PipelineTrainer or W&B Serverless.",
+      "multiStep": "Yes — arbitrary Python agent loops with multiple LLM & MCP tool calls, plus Additional Histories support.",
+      "rubricJudge": "Yes — built-in RULER relative trajectory judge plus custom reward/rubric hooks.",
+      "rlAlgorithms": "GRPO",
+      "distillation": "SFT on teacher trajectories supported.",
+      "sweetSpot": "Small teams (1–4 GPUs) prototyping vertical agents (email, SQL, CRM, MCP tools) in days.",
+      "url": "https://github.com/OpenPipe/ART",
+      "docsUrl": "https://art.openpipe.ai/"
+    },
+    {
+      "name": "Unsloth",
+      "bestFor": "Ultra-memory-efficient LoRA/QLoRA SFT and single-GPU RL (GRPO, GSPO, DAPO) with chunked logit/loss kernels.",
+      "hardware": "NVIDIA, AMD, Intel; shares base weights between trainer and vLLM sampler on the same GPU (~5 GB VRAM for 1.5B RL).",
+      "multiStep": "Yes — acts as the memory-optimized training backend underneath OpenPipe ART.",
+      "rubricJudge": "Yes — custom Python reward functions (or RULER via ART).",
+      "rlAlgorithms": "GRPO, GSPO, DAPO (optimizing TRL's GRPOTrainer)",
+      "distillation": "SFT on teacher traces (no standalone OPD trainer documented yet).",
+      "sweetSpot": "Single-GPU workstation / 1× H100 experimentation, fast LoRA SFT, and low-budget 1.5B–14B RL.",
+      "url": "https://github.com/unslothai/unsloth",
+      "docsUrl": "https://unsloth.ai/docs/get-started/reinforcement-learning-rl-guide"
+    },
+    {
+      "name": "Hugging Face TRL",
+      "bestFor": "Standard, well-documented all-in-one PyTorch library for SFT, DPO, multi-turn GRPO, RLOO, and On-Policy Distillation.",
+      "hardware": "Single GPU to multi-node via Accelerate/FSDP/DeepSpeed; Liger fused kernels (`use_liger_kernel=True`) slash logit VRAM.",
+      "multiStep": "Yes — GRPOTrainer now supports stateful multi-turn environments and custom rollout functions.",
+      "rubricJudge": "Yes — pluggable Python reward callables and judge endpoints.",
+      "rlAlgorithms": "SFT, DPO, KTO, ORPO, GRPO, RLOO, AsyncGRPOTrainer",
+      "distillation": "Built-in DistillationTrainer (GKD / On-Policy Distillation).",
+      "sweetSpot": "Standard enterprise ML teams wanting long-term Hugging Face ecosystem compatibility and clean abstractions.",
+      "url": "https://github.com/huggingface/trl",
+      "docsUrl": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    },
+    {
+      "name": "Tinker (Thinking Machines API)",
+      "bestFor": "Training-as-a-Service API exposing low-level SFT, RL, Rubric Grading, and OPD primitives without managing GPU clusters.",
+      "hardware": "Zero local GPU ops — your agent loop & eval logic run locally while Tinker executes distributed forward/backward/sampling remotely.",
+      "multiStep": "Yes — client-side agent loop with rich cookbook recipes.",
+      "rubricJudge": "Yes — first-class Rubric Grading cookbook recipes.",
+      "rlAlgorithms": "Custom policy gradients, GRPO, CISPO via API primitives",
+      "distillation": "First-class Off-Policy & On-Policy Distillation (OPD) recipes.",
+      "sweetSpot": "Teams that want full algorithmic control (including OPD & custom RL) without hiring GPU infrastructure engineers.",
+      "url": "https://thinkingmachines.ai/tinker/",
+      "docsUrl": "https://tinker-docs.thinkingmachines.ai/"
+    },
+    {
+      "name": "OpenRLHF",
+      "bestFor": "Mature Ray + vLLM distributed RLHF and multi-turn agent training with classic and modern policy gradient algorithms.",
+      "hardware": "NVIDIA/CUDA multi-GPU and multi-node Ray clusters with DeepSpeed ZeRO & vLLM.",
+      "multiStep": "Yes — Multi-Turn Agent mode.",
+      "rubricJudge": "Yes — custom reward functions and external reward servers.",
+      "rlAlgorithms": "PPO, GRPO, RLOO, REINFORCE++",
+      "distillation": "Teacher SFT supported; no dedicated built-in OPD trainer.",
+      "sweetSpot": "Teams wanting mature PPO/REINFORCE++ baselines on Ray clusters.",
+      "url": "https://github.com/OpenRLHF/OpenRLHF",
+      "docsUrl": "https://github.com/OpenRLHF/OpenRLHF"
+    },
+    {
+      "name": "rLLM (Agentica)",
+      "bestFor": "Long-horizon software engineering and reasoning agents (powered Together × Agentica DeepSWE-32B).",
+      "hardware": "Multi-GPU to 64× H100 clusters for full 32B SWE runs; lighter setups with LoRA or Tinker backend.",
+      "multiStep": "Yes — up to 100-step containerized SWE/tool trajectories.",
+      "rubricJudge": "Yes — environment unit-test verifiers or custom rubric rewards.",
+      "rlAlgorithms": "GRPO / GRPO++, REINFORCE, RLOO",
+      "distillation": "SFT + OPD recipe with Tinker backend.",
+      "sweetSpot": "Coding agents, containerized execution environments, and long-horizon SWE RL.",
+      "url": "https://github.com/rllm-org/rllm",
+      "docsUrl": "https://www.together.ai/blog/deepswe"
+    },
+    {
+      "name": "Microsoft Agent Lightning",
+      "bestFor": "Adding RL post-training to existing production agent frameworks (LangChain, AutoGen, OpenAI Agents SDK, ServiceNow) without code rewrites.",
+      "hardware": "Decoupled agent execution workers + GPU training backend (verl/vLLM compatible).",
+      "multiStep": "Yes — traces arbitrary multi-agent and multi-turn production executions.",
+      "rubricJudge": "Yes — flexible reward emission hooks.",
+      "rlAlgorithms": "GRPO / hierarchical multi-agent RL via pluggable trainers",
+      "distillation": "Trajectory collection supports SFT / imitation pipelines.",
+      "sweetSpot": "Enterprises with existing agent orchestrators who refuse to rewrite their business logic for an RL library.",
+      "url": "https://github.com/microsoft/agent-lightning",
+      "docsUrl": "https://www.microsoft.com/en-us/research/blog/agent-lightning-adding-reinforcement-learning-to-ai-agents-without-code-rewrites/"
+    },
+    {
+      "name": "Scale AI AgentEnv",
+      "bestFor": "Standardized multi-turn enterprise agent environment framework for evaluation and RL rollouts.",
+      "hardware": "Containerized sandbox infrastructure decoupled from trainer choice.",
+      "multiStep": "Yes — built specifically for stateful multi-step agent environments.",
+      "rubricJudge": "Yes — structured verifier and rubric interfaces.",
+      "rlAlgorithms": "Environment layer (pairs with verl, SkyRL, PrimeRL, TRL)",
+      "distillation": "Generates verified trajectories for SFT/iSFT.",
+      "sweetSpot": "Teams standardizing reproducible sandboxed environments across evals and RL.",
+      "url": "https://github.com/scaleapi/agentenv-framework/",
+      "docsUrl": "https://github.com/scaleapi/agentenv-framework/"
+    }
+  ],
+  "hardwareSizing": [
+    {
+      "tier": "Ultra-Compact (1.5B–4B)",
+      "models": "Qwen3-4B, Llama-3.2-3B, Phi-3.5-mini",
+      "sftHardware": "1× RTX 4090 / L4 (24 GB) with LoRA/QLoRA",
+      "rlHardware": "1× RTX 4090 / A10G (5–24 GB via Unsloth co-located vLLM)",
+      "servingProfile": "Sub-30ms TTFT, >200–2,800 tok/s; ideal for routing, tagging, fast-context search, edge/on-device.",
+      "typicalBudget": "$5–$50 per experiment"
+    },
+    {
+      "tier": "Small Production Sweet Spot (7B–9B)",
+      "models": "Qwen3.5-9B, Llama-3.1-8B, Nemotron-8B",
+      "sftHardware": "1× A100/H100 (80 GB) or 1× RTX PRO 6000 (96 GB)",
+      "rlHardware": "1× H100 / RTX PRO 6000 96GB (Coinbase ran 9B SkyRL for <$100); 2–4× H100 for long context",
+      "servingProfile": "0.5–0.7s end-to-end latency; beats frontier on bounded fraud, classification, orchestration, tool calling.",
+      "typicalBudget": "$50–$500 per run"
+    },
+    {
+      "tier": "Midsize Workhorse (14B–32B Dense)",
+      "models": "Qwen2.5-14B, Qwen3/3.5/3.8-27B–32B",
+      "sftHardware": "1–2× H100 (80 GB) with LoRA (BF16/FP8); 4–8× H100 for full FT",
+      "rlHardware": "1× H100 for 14B LoRA GRPO (ART·E); 2–8× H100 with FP8/vLLM kernels for 27B–32B long-context RL",
+      "servingProfile": "High reasoning + strict schema adherence; powers clinical scribes, legal compaction, email & code agents.",
+      "typicalBudget": "$300–$5,000 per run"
+    },
+    {
+      "tier": "Small-Active MoE (30B–35B, ~3B Active)",
+      "models": "Qwen3.6-35B-A3B, Qwen3-30B-A3B",
+      "sftHardware": "1–2× H100 (80 GB) with LoRA",
+      "rlHardware": "2–8× H100 (fast rollouts thanks to 3B active params!)",
+      "servingProfile": "30B+ knowledge capacity at 3B serving latency/cost — emerging 2026 king for enterprise agentic search & RAG.",
+      "typicalBudget": "$300–$3,000 per run"
+    }
+  ]
+}

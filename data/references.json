@@ -1,0 +1,776 @@
+[
+  {
+    "title": "How Coinbase Built, Evaluated, and Post-Trained a Fraud Agent (Qwen3.5-9B + SkyRL)",
+    "url": "https://www.coinbase.com/blog/part-one-how-coinbase-built-evaluated-and-post-trained-a-fraud-agent",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "9B RL-trained risk agent beat Claude Opus 4.5 (+9.6% F1, -55% latency) on a <$100 single-GPU run."
+  },
+  {
+    "title": "Improving Cursor Tab with Online RL",
+    "url": "https://cursor.com/blog/tab-rl",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Live accept/reject policy gradients shipping every 1.5–2 hours: -21% noisy suggestions, +28% accept rate."
+  },
+  {
+    "title": "Intercom's Post-Trained Fin Apex 1.0 Beats GPT-5.4 and Claude Sonnet 4.6",
+    "url": "https://venturebeat.com/technology/intercoms-new-post-trained-fin-apex-1-0-beats-gpt-5-4-and-claude-sonnet-4-6",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Vertical CX post-training + calibrated abstention drove ~76% autonomous resolution and $3.6B Salesforce acquisition."
+  },
+  {
+    "title": "Baseten Labs: Iterative SFT (iSFT) for Medical Scribes (Qwen3-32B)",
+    "url": "https://labs.baseten.co/articles/iterative-sft",
+    "year": 2026,
+    "pillar": "SFT",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Frontier model grades & repairs clinical drafts before SFT: jumped accuracy from 52–56% (standard SFT) to 66–78%."
+  },
+  {
+    "title": "Harvey × Baseten: Post-Training Open Legal Agents (Qwen3.5-9B GRPO & 27B Compaction iSFT)",
+    "url": "https://www.harvey.ai/blog/post-training-open-legal-agents-with-baseten-research",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "40 GRPO steps on Qwen3.5-9B cut grep calls by 67%; 27B compaction agent learned intermediate memo synthesis via iSFT."
+  },
+  {
+    "title": "Harvey × Applied Compute: Training Frontier Review-Table Models (Qwen3.6-35B-A3B)",
+    "url": "https://www.harvey.ai/blog/training-frontier-review-table-models-with-applied-compute",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Agentic RL on 35B-A3B saved 50.3% input & 28.6% output tokens using hybrid code + LLM-judge rewards."
+  },
+  {
+    "title": "Harvey × Baseten: Post-Training RLM Agents for M&A Diligence",
+    "url": "https://www.harvey.ai/blog/post-training-rlm-agents-for-m-and-a-diligence",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "GRPO over recursive subagent delegation doubled M&A rubric pass rate (29.9% → 63.0%) on up to 80M-token data rooms."
+  },
+  {
+    "title": "Engram × Harvey: Legal Agents with Memory (Qwen3.8-27B Self-Study)",
+    "url": "https://engram.com/blog/legal-agents-with-memory",
+    "year": 2026,
+    "pillar": "Continual Learning & Memory",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Parameter-efficient self-study (distillation + RL) cut inference tokens from 88.2k to 36.7k and sped up precedent discovery."
+  },
+  {
+    "title": "Cognition: SWE-grep & Fast Context Subagents",
+    "url": "https://cognition.ai/blog/swe-grep",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Multi-turn RL + distillation created a >2,800 tok/s parallel code-search specialist (8 concurrent calls/turn, ≤4 turns)."
+  },
+  {
+    "title": "OpenPipe: ART·E — Training Qwen2.5-14B with GRPO to Beat o3 on Email Search",
+    "url": "https://openpipe.ai/blog/art-e-mail-agent",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Single-H100 GRPO run beat OpenAI o3 at 64× lower cost and 5× faster latency; full open-source blueprint."
+  },
+  {
+    "title": "Paper Instruments: Ultramarine 1 Flash — Scaling Non-Verifiable RL",
+    "url": "https://www.paperinstruments.com/blog/ultramarine",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "LoRA r=64 rubric RL on GLM-5.3 Flash in Feather/Paper Office harness delivered ~$0.13/task corporate deliverables."
+  },
+  {
+    "title": "Databricks: TAO — Using Test-Time Compute to Train Efficient LLMs Without Labeled Data",
+    "url": "https://www.databricks.com/blog/tao-using-test-time-compute-train-efficient-llms-without-labeled-data",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Unlabeled production queries + test-time candidate generation + DBRM RL beat human-labeled SFT with 0× extra serving latency."
+  },
+  {
+    "title": "Thinking Machines × Bridgewater: Learning to Replicate Expert Judgment in Financial Tasks",
+    "url": "https://thinkingmachines.ai/news/learning-to-replicate-expert-judgment-in-financial-tasks/",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "CISPO + OPD + expert investor annotations broke the 78% prompting ceiling to 84.7% accuracy at 1/14th inference cost."
+  },
+  {
+    "title": "Thinking Machines: On-Policy Distillation",
+    "url": "https://thinkingmachines.ai/blog/on-policy-distillation/",
+    "year": 2025,
+    "pillar": "Distillation",
+    "type": "Blog / Case Study",
+    "source": "Apple Notes",
+    "takeaway": "Per-token reverse KL from a teacher along student rollouts gives dense credit assignment + 9×–30× compute savings over sparse RL."
+  },
+  {
+    "title": "Thinking Machines: LoRA Without Regret (John Schulman)",
+    "url": "https://thinkingmachines.ai/blog/lora/",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "LoRA matches full fine-tuning for RL and small/midsize post-training if applied to all linear layers with properly scaled LR."
+  },
+  {
+    "title": "Mercor × SkyRL: Training Frontier Knowledge Work Agents (Practical RL Guide)",
+    "url": "https://www.mercor.com/blog/training-frontier-knowledge-work-agents-a-397b-rl-training-guide-with-skyrl/",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Essential RL debugging order: verify token capture → compare sampler/trainer logprobs → overfit tiny batch before scaling."
+  },
+  {
+    "title": "Mercor: Expert Data Drives Model Performance (APEX-Agents)",
+    "url": "https://www.mercor.com/blog/expert-data-drives-model-performance/",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "RL without SFT warmup on just 874 expert tasks yielded major legal/finance gains; 2,000 tasks cut agent steps from 72 to 43."
+  },
+  {
+    "title": "Together AI × Agentica: DeepSWE (Qwen3-32B Pure RL Coding Agent)",
+    "url": "https://www.together.ai/blog/deepswe",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Open-weight 32B SWE agent trained with pure multi-turn RL in containerized repos via rLLM."
+  },
+  {
+    "title": "Harness-1: RL for Search Agents with State-Externalizing Harnesses",
+    "url": "https://arxiv.org/abs/2606.02373",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Offloading bookkeeping to a stateful harness let a 20B model (899 SFT traces + RL) beat GPT-5.4 (0.730 vs 0.709 recall)."
+  },
+  {
+    "title": "Small Language Models are the Future of Agentic AI (NVIDIA Research)",
+    "url": "https://arxiv.org/abs/2506.02153",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Economic and architectural manifesto for replacing monolithic frontier calls with specialized post-trained SLMs."
+  },
+  {
+    "title": "ToolOrchestra: Elevating Intelligence via Efficient Model and Tool Orchestration (NVIDIA)",
+    "url": "https://arxiv.org/abs/2511.21689",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Nemotron-Orchestrator-8B beat GPT-5 on HLE (37.1%) at 2.5× efficiency and ~30% monetary cost via GRPO routing."
+  },
+  {
+    "title": "Amazon Nova Forge: Build Your Own Frontier Models (Open Training)",
+    "url": "https://aws.amazon.com/blogs/aws/introducing-amazon-nova-forge-build-your-own-frontier-models-using-nova/",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Mid-training data blending inside customer VPCs to embed proprietary enterprise knowledge without catastrophic forgetting."
+  },
+  {
+    "title": "AWS: Overcoming LLM Hallucinations in Regulated Industries (Artificial Genius on Nova)",
+    "url": "https://aws.amazon.com/blogs/machine-learning/overcoming-llm-hallucinations-in-regulated-industries-artificial-geniuss-deterministic-models-on-amazon-nova/",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Deterministic output constraints and traceable training provenance for audit-heavy banking, pharma, and legal AI."
+  },
+  {
+    "title": "Booking.com AI: Practical LLM Evaluation & Production Tips",
+    "url": "https://booking.ai/llm-evaluation-practical-tips-at-booking-com-1b038a0d6662",
+    "year": 2025,
+    "pillar": "Evals & Rewards",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Production lessons from marketplace-scale distillation, Medusa speculative decoding, and evaluation discipline."
+  },
+  {
+    "title": "ZenML LLMOps Production Database",
+    "url": "https://www.zenml.io/llmops-database",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Large searchable catalog of real enterprise LLM deployments (Uber, DoorDash, Checkr, Booking.com, etc.)."
+  },
+  {
+    "title": "SFT Memorizes, RL Generalizes: A Comparative Study of Foundation Model Post-Training",
+    "url": "https://arxiv.org/abs/2501.17161",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Empirical proof that SFT anchors format while RL drives out-of-distribution generalization—yet SFT stabilizes RL cold starts."
+  },
+  {
+    "title": "Finetuning with Sampling: SFT Learns Better Than You Think",
+    "url": "https://arxiv.org/abs/2610.02140",
+    "year": 2026,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Adapting expert traces via MCMC sampling to match the student's distribution dramatically improves SFT generalization and curbs forgetting."
+  },
+  {
+    "title": "Learning Rate Matters: Vanilla LoRA May Suffice for LLM Fine-Tuning",
+    "url": "https://arxiv.org/abs/2602.04998",
+    "year": 2026,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Many fancy LoRA variants only beat vanilla LoRA because baseline LR sweeps were under-tuned—sweep LR first!"
+  },
+  {
+    "title": "LoRA Learns Less and Forgets Less",
+    "url": "https://arxiv.org/abs/2405.09673",
+    "year": 2024,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Low-rank regularization acts as a built-in brake on catastrophic forgetting when adapting small/midsize models to vertical domains."
+  },
+  {
+    "title": "Shadow-FT: Fine-Tuning Instruction-Tuned LLMs via Base Models",
+    "url": "https://arxiv.org/abs/2505.12716",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Fine-tuning the Base model and grafting the Instruct weight delta back can outperform direct Instruct fine-tuning while preserving retention."
+  },
+  {
+    "title": "Disambiguation-Centric Finetuning Makes Enterprise Tool-Calling LLMs More Realistic and Less Risky",
+    "url": "https://arxiv.org/abs/2507.03336",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Training enterprise tool-calling models to ask clarifying questions on ambiguous inputs prevents costly destructive API calls."
+  },
+  {
+    "title": "Small Language Models for Efficient Agentic Tool Calling: Outperforming Large Models with Targeted Fine-Tuning",
+    "url": "https://arxiv.org/abs/2512.15943",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Targeted domain tool-calling SFT allows compact SLMs to beat much larger generalists on strict API schemas."
+  },
+  {
+    "title": "Fine-Tune an SLM or Prompt an LLM? The Case of Generating Low-Code Workflows",
+    "url": "https://arxiv.org/abs/2505.24189",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Direct enterprise trade-off study showing where fine-tuned SLMs overtake prompted frontier models on workflow generation."
+  },
+  {
+    "title": "Does Fine-Tuning LLMs on New Knowledge Encourage Hallucinations?",
+    "url": "https://arxiv.org/abs/2405.05904",
+    "year": 2024,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Injecting unfamiliar facts via naive SFT trains the model to guess confidently—use RAG or abstention supervision instead."
+  },
+  {
+    "title": "Training Against Hallucinations (arXiv:2604.15574)",
+    "url": "https://arxiv.org/abs/2604.15574",
+    "year": 2026,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Targeted post-training techniques to enforce grounded abstention rather than confident confabulation."
+  },
+  {
+    "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+    "url": "https://arxiv.org/abs/2501.12948",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Catalyzed the GRPO/RLVR era and demonstrated that distilling R1 traces into 7B–32B models beats pure small-model RL on math."
+  },
+  {
+    "title": "DAPO: An Open-Source LLM Reinforcement Learning System at Scale",
+    "url": "https://arxiv.org/abs/2503.14476",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Four vital GRPO fixes: Clip-Higher (asymmetric clipping), Dynamic Sampling, Token-Level Policy Gradient Loss, Overlong Reward Shaping."
+  },
+  {
+    "title": "GSPO: Group Sequence Policy Optimization",
+    "url": "https://arxiv.org/abs/2507.18071",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Sequence-level importance ratios stabilize MoE and long-trajectory agentic RL (adopted in Qwen3 and Harvey Tenet)."
+  },
+  {
+    "title": "GDPO: Group Reward-Decoupled Normalization Policy Optimization for Multi-Reward RL (NVIDIA)",
+    "url": "https://arxiv.org/abs/2601.05242",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Normalizes each reward component separately before combining—prevents auxiliary format/search terms from swamping task accuracy."
+  },
+  {
+    "title": "Rubrics as Rewards: Reinforcement Learning Beyond Verifiable Domains",
+    "url": "https://arxiv.org/abs/2507.17746",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Foundation for enterprise knowledge-work RL (law, medicine, finance) using structured criterion checklists scored by LLM judges."
+  },
+  {
+    "title": "Rubric Dropout: A Simple Way to Mitigate Reward Hacking in Rubric-as-Reward RL",
+    "url": "https://arxiv.org/abs/2608.11669",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Randomly dropping rubric criteria during RL training stops agents from gaming narrow judge checklists."
+  },
+  {
+    "title": "When Speed Kills Stability: Demystifying RL Collapse from the Training-Inference Mismatch",
+    "url": "https://yingru.notion.site/When-Speed-Kills-Stability-Demystifying-RL-Collapse-from-the-Training-Inference-Mismatch-271211a558b7808d8b12d403fd15edda",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Must-read debugging guide on why vLLM vs. FSDP/BF16/FP8 logprob discrepancies silently collapse RL runs."
+  },
+  {
+    "title": "Score Centering Stabilizes Off-Policy Reinforcement Learning",
+    "url": "https://arxiv.org/abs/2609.20807",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Simple variance-reduction fix that stabilizes asynchronous and stale off-policy RL updates."
+  },
+  {
+    "title": "RL's Razor: Why Online Reinforcement Learning Forgets Less",
+    "url": "https://arxiv.org/abs/2509.04259",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Shows why on-policy RL stays close to the base model's support and preserves general capabilities better than off-policy SFT."
+  },
+  {
+    "title": "Reinforcement Learning for Reasoning in Small LLMs: What Works and What Doesn't",
+    "url": "https://arxiv.org/abs/2503.16219",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Practical ablation of RL limits on 1.5B–7B models—when base pass@k is near zero, SFT/distillation must come first."
+  },
+  {
+    "title": "JustRL: Scaling a 1.5B LLM with a Simple RL Recipe",
+    "url": "https://arxiv.org/abs/2512.16649",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Proves a clean, minimal single-stage RL recipe scales 1.5B models cleanly without complex multi-stage hacks."
+  },
+  {
+    "title": "Beyond the 80/20 Rule: High-Entropy Minority Tokens Drive Effective RL for LLM Reasoning",
+    "url": "https://arxiv.org/abs/2506.01939",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Only ~20% of tokens (high-entropy branching/decision tokens) drive RL policy improvement—explains why preserving exploration entropy is vital."
+  },
+  {
+    "title": "The Art of Scaling Reinforcement Learning Compute for LLMs",
+    "url": "https://arxiv.org/abs/2510.13786",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Systematic scaling laws for RL batch size, rollout group size, off-policy staleness, and compute allocation."
+  },
+  {
+    "title": "Planner-R1: Reward Shaping Enables Efficient Agentic RL with Smaller LLMs",
+    "url": "https://arxiv.org/abs/2509.25779",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Targeted reward shaping unlocks multi-step planning in smaller open models without massive compute."
+  },
+  {
+    "title": "The Hallucination Tax of Reinforcement Finetuning",
+    "url": "https://arxiv.org/abs/2505.13988",
+    "year": 2025,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Warning: outcome-only RL without an explicit abstention reward encourages models to guess wildly instead of saying 'I don't know'."
+  },
+  {
+    "title": "Is Frontier Asynchronous RL Solved?",
+    "url": "https://luk-huang.github.io/personal-website/blog/is-frontier-asynchronous-rl-solved.html",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Systems deep-dive into off-policy staleness, weight sync bottlenecks, and async RL stability."
+  },
+  {
+    "title": "Efficient RL Training — Optimizing Weight Sync in slime",
+    "url": "https://hebiao064.github.io/rl-weight-sync",
+    "year": 2025,
+    "pillar": "Frameworks & Infra",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Practical systems tricks to cut trainer-to-rollout-engine weight broadcast overhead during RL loops."
+  },
+  {
+    "title": "Reinforcement Learning without Verifiable Rewards — Will Brown (Prime Intellect)",
+    "url": "https://youtu.be/AQv3qRCG6Gw",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Video / Talk",
+    "source": "Obsidian Vault",
+    "takeaway": "Practitioner talk on rubric-based RL, Verifiers environments, and where SFT vs. RL vs. OPD shine."
+  },
+  {
+    "title": "Why Finetuning Lost and RL Won — Kyle Corbitt (OpenPipe)",
+    "url": "https://www.youtube.com/watch?v=yYZBd25rl4Q",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Video / Talk",
+    "source": "Obsidian Vault",
+    "takeaway": "Sharp industry perspective on moving enterprise teams from static SFT imitation to agentic GRPO."
+  },
+  {
+    "title": "Epoch AI: State of RL Environments",
+    "url": "https://epoch.ai/gradient-updates/state-of-rl-envs",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Market overview of why realistic, sandboxed enterprise RL environments—not algorithms—are the real moat."
+  },
+  {
+    "title": "On-Policy Distillation of Language Models: Learning from Self-Generated Mistakes (GKD)",
+    "url": "https://arxiv.org/abs/2306.13649",
+    "year": 2023,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Foundational Google DeepMind paper introducing on-policy distillation (student rollouts + teacher token feedback) to solve exposure bias."
+  },
+  {
+    "title": "Self-Distillation Enables Continual Learning (SDFT)",
+    "url": "https://arxiv.org/abs/2601.19897",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Apple Notes",
+    "takeaway": "Uses the model's own weights conditioned on in-context demonstrations as a self-teacher to absorb new skills with minimal forgetting."
+  },
+  {
+    "title": "Reinforcement Learning via Self-Distillation (SDPO)",
+    "url": "https://arxiv.org/abs/2601.20802",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Apple Notes",
+    "takeaway": "Turns rich textual error feedback into dense token-level self-distillation updates—bridging textual critiques and policy optimization."
+  },
+  {
+    "title": "Self-Distilled Reasoner (OPSD)",
+    "url": "https://arxiv.org/abs/2601.18734",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "On-policy self-distillation using verified solution hints in the teacher prompt to compress reasoning into unconditioned rollouts."
+  },
+  {
+    "title": "Rubric-Guided Self-Distillation (RGSD)",
+    "url": "https://arxiv.org/abs/2606.12507",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Feeds task rubrics as privileged teacher context to distill rubric adherence without an online judge at GRPO cost."
+  },
+  {
+    "title": "Does Self-Distillation Improve Reasoning? (Critical Re-Evaluation)",
+    "url": "https://arxiv.org/abs/2610.18613",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Crucial late-2026 warning: SDPO/OPSD gains often fail OOD, suppress backtracking cues, and misalign with true reward gradients."
+  },
+  {
+    "title": "From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents",
+    "url": "https://arxiv.org/abs/2609.29051",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Exposes failure modes of privileged-info self-distillation in multi-turn agents; proposes hint-guided rollouts + GRPO instead."
+  },
+  {
+    "title": "PivotOPD: Learning to Recover from Pivotal Mistakes in Multi-Turn Agents",
+    "url": "https://arxiv.org/abs/2609.40285",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Targets teacher OPD corrections specifically at pivotal error turns so agents learn both prevention and mid-trajectory recovery."
+  },
+  {
+    "title": "On Repulsive and Attractive Teachers (Self-Distillation Analysis)",
+    "url": "https://self-distillation.github.io/repulsive_attractive.html",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Shows how self-distillation shifts response length and confidence; combines correct & incorrect teacher contrasts for stability."
+  },
+  {
+    "title": "Weak-to-Strong On-Policy Distillation",
+    "url": "https://arxiv.org/abs/2607.26246",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Explores how on-policy distillation transfers specialized domain capabilities even across asymmetric model capacities."
+  },
+  {
+    "title": "Embarrassingly Simple Self-Distillation Improves Code Generation",
+    "url": "https://arxiv.org/abs/2604.01193",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Minimal self-distillation baseline that yields clean code-generation gains without heavy RL infrastructure."
+  },
+  {
+    "title": "Agent Fine-Tuning Through Distillation for Domain-Specific LLMs in Microdomains",
+    "url": "https://arxiv.org/abs/2510.00482",
+    "year": 2025,
+    "pillar": "Distillation",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Blueprint for distilling specialized frontier agents into compact SLMs for narrow enterprise microdomains."
+  },
+  {
+    "title": "Will Brown: On SFT, RL, and On-Policy Distillation",
+    "url": "https://x.com/willcb/status/2050038277454143918",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Blog / Case Study",
+    "source": "Apple Notes",
+    "takeaway": "Clear practitioner breakdown of when to choose SFT, RL, or OPD—and why privileged-hint self-distillation goes unstable."
+  },
+  {
+    "title": "RLTL;DR: Self-Improvement by Internalizing Self-Generated Feedback",
+    "url": "https://arxiv.org/abs/2609.37633",
+    "year": 2026,
+    "pillar": "Continual Learning & Memory",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Agent summarizes concise lessons after failures and trains to apply them zero-shot without carrying full reflection transcripts."
+  },
+  {
+    "title": "MixSD: Mixed Contextual Self-Distillation for Knowledge Injection",
+    "url": "https://arxiv.org/abs/2605.16865",
+    "year": 2026,
+    "pillar": "Continual Learning & Memory",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Injects enterprise document knowledge into weights by distilling context-conditioned behavior into parameter updates."
+  },
+  {
+    "title": "KeepLoRA: Continual Learning with Residual Gradient Adaptation",
+    "url": "https://arxiv.org/abs/2601.19659",
+    "year": 2026,
+    "pillar": "Continual Learning & Memory",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Residual gradient LoRA design reducing interference across sequential enterprise domain updates."
+  },
+  {
+    "title": "a16z: Why We Need Continual Learning",
+    "url": "https://a16z.com/why-we-need-continual-learning/",
+    "year": 2026,
+    "pillar": "Continual Learning & Memory",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Strategic market view on why enterprises need models that learn from corrections across deployments without full retrains."
+  },
+  {
+    "title": "No Free Labels: Limitations of LLM-as-a-Judge Without Human Grounding",
+    "url": "https://arxiv.org/abs/2503.05061",
+    "year": 2025,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Always anchor automated rubric judges to human-labeled validation sets and measure inter-run agreement."
+  },
+  {
+    "title": "How to Correctly Report LLM-as-a-Judge Evaluations",
+    "url": "https://arxiv.org/abs/2511.21140",
+    "year": 2025,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Statistical calibration & confidence intervals for LLM judges so you don't ship noise as 'RL gains'."
+  },
+  {
+    "title": "Incorrect Baseline Evaluations Call into Question Recent LLM RL Claims",
+    "url": "https://safe-lip-9a8.notion.site/Incorrect-Baseline-Evaluations-Call-into-Question-Recent-LLM-RL-Claims-2012f1fbf0ee8094ab8ded1953c15a37",
+    "year": 2025,
+    "pillar": "Evals & Rewards",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Audit your baseline prompt, chat template, and thinking-token settings before celebrating a post-training lift."
+  },
+  {
+    "title": "The Verification Horizon: No Silver Bullet for Coding Agent Rewards",
+    "url": "https://arxiv.org/abs/2606.26300",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Obsidian Vault",
+    "takeaway": "Shows why even unit-test rewards have blind spots (flaky tests, spec loopholes) on long-horizon coding tasks."
+  },
+  {
+    "title": "verl (Volcano Engine Reinforcement Learning for LLMs)",
+    "url": "https://github.com/verl-project/verl",
+    "year": 2025,
+    "pillar": "Frameworks & Infra",
+    "type": "Repo / Tool",
+    "source": "Obsidian Vault",
+    "takeaway": "Leading open-source distributed RL & OPD library implementing HybridFlow (PPO, GRPO, GSPO, DAPO, AgentLoops)."
+  },
+  {
+    "title": "Prime Intellect: PrimeRL & Verifiers",
+    "url": "https://github.com/PrimeIntellect-ai/prime-rl",
+    "year": 2026,
+    "pillar": "Frameworks & Infra",
+    "type": "Repo / Tool",
+    "source": "Obsidian Vault",
+    "takeaway": "Async FSDP2 + vLLM trainer paired with composable Verifiers environments and JudgeRubric."
+  },
+  {
+    "title": "Unsloth: Memory-Efficient LoRA SFT & Single-GPU GRPO/GSPO/DAPO",
+    "url": "https://github.com/unslothai/unsloth",
+    "year": 2025,
+    "pillar": "Frameworks & Infra",
+    "type": "Repo / Tool",
+    "source": "Obsidian Vault",
+    "takeaway": "Chunked logprob/loss kernels + co-located vLLM let you run 1.5B–14B RL on a single consumer or workstation GPU."
+  },
+  {
+    "title": "Hugging Face TRL (SFT, DPO, Multi-Turn GRPO, DistillationTrainer)",
+    "url": "https://github.com/huggingface/trl",
+    "year": 2026,
+    "pillar": "Frameworks & Infra",
+    "type": "Repo / Tool",
+    "source": "Obsidian Vault",
+    "takeaway": "Standard ecosystem trainer with Liger fused kernels, stateful multi-turn GRPO, and GKD/OPD DistillationTrainer."
+  },
+  {
+    "title": "Microsoft Agent Lightning",
+    "url": "https://github.com/microsoft/agent-lightning",
+    "year": 2025,
+    "pillar": "Frameworks & Infra",
+    "type": "Repo / Tool",
+    "source": "Obsidian Vault",
+    "takeaway": "Bolt RL onto existing multi-agent production stacks without rewriting your application harness."
+  },
+  {
+    "title": "Scale AI AgentEnv Framework",
+    "url": "https://github.com/scaleapi/agentenv-framework/",
+    "year": 2026,
+    "pillar": "Frameworks & Infra",
+    "type": "Repo / Tool",
+    "source": "Obsidian Vault",
+    "takeaway": "Modular sandboxed environment layer for enterprise agent evaluations and RL rollouts."
+  },
+  {
+    "title": "RLHF Book — Nathan Lambert",
+    "url": "https://rlhfbook.com/c/11-policy-gradients.html",
+    "year": 2025,
+    "pillar": "RL",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Clear, rigorous open textbook covering policy gradients, REINFORCE, PPO, GRPO, reward modeling, and post-training."
+  },
+  {
+    "title": "Sandboxing AI Agent Code Execution (Containers, gVisor, Kata, Firecracker MicroVMs)",
+    "url": "https://machinelearningmastery.com/sandboxing-ai-agent-code-execution-in-python-containers-microvms-and-beyond/",
+    "year": 2026,
+    "pillar": "Frameworks & Infra",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Production security imperative: multi-tenant RL rollouts and coding agents require microVMs/syscall filtering, not vanilla Docker."
+  },
+  {
+    "title": "Anthropic Engineering: Effective Harnesses for Long-Running Agents",
+    "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "year": 2025,
+    "pillar": "Frameworks & Infra",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "Fix harness ergonomics, state persistence, and tool contracts before spending GPU hours post-training weights."
+  },
+  {
+    "title": "Context Engineering for AI Agents: Lessons from Building Manus",
+    "url": "https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus",
+    "year": 2025,
+    "pillar": "Frameworks & Infra",
+    "type": "Blog / Case Study",
+    "source": "Obsidian Vault",
+    "takeaway": "KV-cache prefix stability, tool masking, and context compaction techniques that directly improve both serving cost and RL stability."
+  }
+]
