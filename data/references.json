@@ -694,6 +694,15 @@
     "takeaway": "Shows why even unit-test rewards have blind spots (flaky tests, spec loopholes) on long-horizon coding tasks."
   },
   {
+    "title": "RL Infrastructure at Microsoft AI (Rocket: Async RL, Staleness & Numerical Consistency)",
+    "url": "https://microsoft.ai/news/rl-infrastructure-at-microsoft-ai/",
+    "year": 2026,
+    "pillar": "Frameworks & Infra",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Deep dive into Microsoft AI's Rocket async RL stack (learner + SGLang fork), tackling off-policy staleness, sampler-learner numerical consistency, and fault tolerance over long runs."
+  },
+  {
     "title": "verl (Volcano Engine Reinforcement Learning for LLMs)",
     "url": "https://github.com/verl-project/verl",
     "year": 2025,
