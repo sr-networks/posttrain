@@ -8,7 +8,7 @@
       "rubricJudge": "Yes — custom or generative reward functions return rubric scores.",
       "rlAlgorithms": "PPO, GRPO, GSPO, DAPO, RLOO, REINFORCE++",
       "distillation": "Built-in On-Policy Distillation (OPD) + SFT.",
-      "sweetSpot": "Midsize teams (8B–35B+) scaling from 4–8 GPUs to clusters; gold standard for async/hybrid throughput.",
+      "sweetSpot": "Midsize teams (8B–35B+) scaling from 4–8 GPUs to clusters; widely adopted reference architecture for asynchronous hybrid throughput.",
       "url": "https://github.com/verl-project/verl",
       "docsUrl": "https://verl.readthedocs.io/en/latest/algo/opd.html"
     },
@@ -38,7 +38,7 @@
     },
     {
       "name": "OpenPipe ART",
-      "bestFor": "Fastest on-ramp to multi-turn agentic GRPO (proven by ART·E 14B email agent beating o3 on 1× H100).",
+      "bestFor": "Lightweight multi-turn agentic GRPO framework (validated on Qwen2.5-14B single-H100 runs).",
       "hardware": "1× NVIDIA GPU (co-located Unsloth/torchtune + vLLM alternating) or separated GPUs via PipelineTrainer or W&B Serverless.",
       "multiStep": "Yes — arbitrary Python agent loops with multiple LLM & MCP tool calls, plus Additional Histories support.",
       "rubricJudge": "Yes — built-in RULER relative trajectory judge plus custom reward/rubric hooks.",
@@ -143,15 +143,15 @@
       "typicalBudget": "$5–$50 per experiment"
     },
     {
-      "tier": "Small Production Sweet Spot (7B–9B)",
+      "tier": "Compact Models (7B–9B)",
       "models": "Qwen3.5-9B, Llama-3.1-8B, Nemotron-8B",
       "sftHardware": "1× A100/H100 (80 GB) or 1× RTX PRO 6000 (96 GB)",
       "rlHardware": "1× H100 / RTX PRO 6000 96GB (Coinbase ran 9B SkyRL for <$100); 2–4× H100 for long context",
-      "servingProfile": "0.5–0.7s end-to-end latency; beats frontier on bounded fraud, classification, orchestration, tool calling.",
+      "servingProfile": "0.5–0.7s end-to-end latency; outperforms frontier baselines on bounded fraud, classification, orchestration, and tool calling.",
       "typicalBudget": "$50–$500 per run"
     },
     {
-      "tier": "Midsize Workhorse (14B–32B Dense)",
+      "tier": "Midsize Dense Models (14B–32B)",
       "models": "Qwen2.5-14B, Qwen3/3.5/3.8-27B–32B",
       "sftHardware": "1–2× H100 (80 GB) with LoRA (BF16/FP8); 4–8× H100 for full FT",
       "rlHardware": "1× H100 for 14B LoRA GRPO (ART·E); 2–8× H100 with FP8/vLLM kernels for 27B–32B long-context RL",
@@ -162,8 +162,8 @@
       "tier": "Small-Active MoE (30B–35B, ~3B Active)",
       "models": "Qwen3.6-35B-A3B, Qwen3-30B-A3B",
       "sftHardware": "1–2× H100 (80 GB) with LoRA",
-      "rlHardware": "2–8× H100 (fast rollouts thanks to 3B active params!)",
-      "servingProfile": "30B+ knowledge capacity at 3B serving latency/cost — emerging 2026 king for enterprise agentic search & RAG.",
+      "rlHardware": "2–8× H100 (low rollout latency due to 3B active parameters per token)",
+      "servingProfile": "Combines ~30B parameter capacity with ~3B active-parameter FLOPs per token; well-suited to multi-turn enterprise retrieval.",
       "typicalBudget": "$300–$3,000 per run"
     }
   ]

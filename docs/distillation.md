@@ -1,81 +1,60 @@
-# Distillation: Off-Policy KD, On-Policy Distillation (OPD) & Self-Distillation
+# Knowledge Distillation: Off-Policy, On-Policy, and Self-Distillation
 
-Distillation is how industry teams capture the intelligence of **200B–600B+ frontier teachers**—or expensive multi-step test-time search—inside **4B–32B student models** that serve at 5×–64× lower cost and sub-second latency.
-
-Between 2024 and late 2026, distillation evolved through three distinct generations: **Off-Policy Sequence Distillation**, **On-Policy Distillation (OPD)**, and **Self-Distillation**—each with sharp trade-offs that every engineering lead must understand before committing GPU budget.
+Knowledge distillation transfers behavioral competence from a high-capacity teacher policy (or a computationally expensive test-time search procedure) into a smaller student model $\pi_\theta$ suitable for low-latency, cost-constrained deployment. Contemporary LLM distillation methods fall into three distinct formulations defined by *which policy generates the training trajectories* and *whether supervision is provided by a separate model or privileged context*.
 
 ---
 
-## 1. The Three Generations of LLM Distillation
+## 1. Taxonomy of Distillation Regimes
 
-| Method | How It Works | Sample / Compute Efficiency | Main Industry Use Case | Biggest Limitation |
+| Formulation | Trajectory Source | Supervision Signal | Sample & Compute Profile | Primary Limitation |
 | --- | --- | --- | --- | --- |
-| **1. Off-Policy Distillation (Teacher SFT)** | Frontier/large teacher generates outputs; student trains via cross-entropy SFT on those static traces. | Very fast, zero online rollout infra required. | High-volume classification, extraction, routing, cold-start harness bootstrap (Booking.com, DoorDash, Checkr, Harness-1). | **Exposure bias:** student never sees or learns to recover from its *own* mistakes; 2026 closed-API ToS restrictions. |
-| **2. On-Policy Distillation (OPD / GKD)** | **Student generates its own rollouts**; a stronger teacher scores every token along the student's trajectory via per-token reverse KL. | **9×–30× cheaper than sparse RL** (dense feedback on every single token!). | Compressing a strong open-weight teacher (e.g. 235B/397B) into a fast 8B–32B production student (Thinking Machines, `verl`, `PrimeRL`, `TRL`). | Requires token-level logprob access to a stronger teacher with a matching tokenizer (open-weight teachers only). |
-| **3. Self-Distillation (SDFT / SDPO / OPSD / RGSD)** | The **same model** acts as teacher by giving it privileged context (demonstrations, error critiques, solution hints, or rubrics) and distilling into the unconditioned student. | Very cheap—no separate giant teacher needed; low forgetting for continual skills. | Continual skill updates (SDFT), absorbing textual error critiques (SDPO), knowledge injection (MixSD / Engram). | **Late-2026 Caveat:** Can overfit, suppress backtracking ("wait, let me recheck"), and fail OOD if privileged hints diverge from true reward gradients! |
+| **Off-policy sequence distillation** | Teacher $\pi_T$ | Token cross-entropy on static teacher completions | Lowest training complexity; no online rollout loop | **Exposure bias** (student never observes recovery from its own state distribution); closed-API terms-of-service restrictions |
+| **On-policy distillation (OPD / GKD)** | Student $\pi_\theta$ | Per-token reverse KL divergence against teacher log-probabilities | $9\times$–$30\times$ fewer compute FLOPs than sparse outcome RL | Requires token-level logit/logprob access to a stronger teacher sharing a compatible tokenizer |
+| **Context-conditioned self-distillation** | Student $\pi_\theta$ | Same model $\pi_\theta(\cdot \mid x, c)$ conditioned on demonstrations, critiques, or rubrics $c$ | No external larger teacher required | Weak OOD generalization and suppressed epistemic backtracking on complex reasoning (*arXiv:2610.18613*) |
 
 ---
 
-## 2. Why On-Policy Distillation (OPD) Is a Breakthrough for Small & Midsize Models
+## 2. On-Policy Distillation (OPD)
 
-Standard post-training historically forced a painful choice:
-- **SFT / Off-Policy Distillation** gives dense feedback on every token, *but* only on trajectories the teacher wrote—so once the student makes one tiny deviation in production, errors compound uncontrollably.
-- **RL (GRPO / PPO)** trains on the student's own trajectories (fixing exposure bias), *but* only gives a single sparse scalar reward at the end of a 5,000-token rollout—requiring massive compute for credit assignment.
+Standard post-training presents a trade-off between **supervision density** and **state-distribution alignment**:
+- Off-policy SFT provides dense supervision of $\mathcal{O}(1)$ bits per token, but exclusively along teacher-visited states. At test time, minor student errors compound quadratically with horizon length (*Ross et al., 2011*).
+- Outcome-based RL evaluates states visited by the student policy $\pi_\theta$, resolving exposure bias, but provides only a single scalar reward over sequences of $10^3$–$10^5$ tokens.
 
-**On-Policy Distillation (OPD)**—rooted in Google DeepMind's *GKD* (2023) and brought to industrial prominence by **Thinking Machines Lab (2025–2026)**—combines the best of both worlds:
+**On-Policy Distillation** (*Agarwal et al., 2023*; *Thinking Machines Lab, 2025*) combines on-policy state visitation with dense token-level supervision:
 
-1. Sample rollouts directly from the **student** policy $\pi_\theta$ on real tasks.
-2. Run a single forward pass of a stronger **teacher** policy $\pi_{\text{teacher}}$ over the student's exact generated tokens to obtain per-token teacher logprobs.
-3. Minimize per-token **reverse KL divergence** (mode-seeking) so the student learns *at the exact token where it drifted* how the stronger teacher would steer back on track.
+1. Sample trajectories $y \sim \pi_\theta(\cdot \mid x)$ from the **student** model.
+2. Evaluate the **teacher** model $\pi_T$ via a single parallel forward pass on $(x, y)$ to obtain conditional token distributions $\pi_T(y_t \mid x, y_{<t})$.
+3. Minimize token-level **reverse Kullback–Leibler divergence** $D_{\mathrm{KL}}(\pi_\theta \,\|\, \pi_T)$ along the student-generated trajectory.
 
 :::insight
-**The Economics of OPD:** Thinking Machines demonstrated **9×–30× lower compute** than sparse outcome RL to achieve equivalent accuracy—making it the #1 method whenever you already have a strong open-weight teacher (e.g., `Qwen3-235B` or `GLM-5.3`) and want a fast 8B–32B student (`Qwen3.5-9B`, `Qwen3-32B`, `Qwen3.6-35B-A3B`) for production serving.
+**Computational efficiency.** Because every token receives a low-variance directional gradient from $\pi_T$ without requiring large group rollouts for baseline estimation, OPD achieves comparable downstream performance to sparse RL at roughly $9\times$–$30\times$ lower training compute when an open-weight teacher (e.g., `Qwen3-235B` or `GLM-5.3`) is available for a same-family student (4B–32B).
 :::
 
-### Built-In Framework Support (2026)
-You do not need to write OPD from scratch—it is natively implemented in:
-- **verl:** Built-in `OPD` algorithm module (`verl.readthedocs.io/en/latest/algo/opd.html`)
-- **PrimeRL:** Native `opd.py` orchestrator algorithm
-- **Hugging Face TRL:** `DistillationTrainer` (GKD / On-Policy Distillation)
-- **Tinker (Thinking Machines API):** First-class Off-Policy & On-Policy Distillation cookbook recipes
-- **rLLM:** Math & agent OPD recipes on top of Tinker
+Native OPD implementations are available in `verl`, `PrimeRL`, Hugging Face `TRL` (`DistillationTrainer`), `rLLM`, and the `Tinker` API. For multi-turn tool agents, **PivotOPD** (*arXiv:2609.40285*) concentrates teacher supervision specifically on pivotal error turns and subsequent recovery steps.
 
 ---
 
-## 3. Advanced 2026 Variants: PivotOPD & Self-Distillation
+## 3. Context-Conditioned Self-Distillation and Empirical Limitations
 
-### PivotOPD (*arXiv:2609.40285*) — Fixing Multi-Turn Agent Recovery
-In multi-turn agents, 90% of turns are routine, while 1–2 **pivotal mistakes** derail the whole task. PivotOPD targets teacher OPD corrections specifically at pivotal error turns and the immediate recovery turns afterward, explicitly teaching small models **how to recover mid-trajectory** rather than only mimicking flawless paths.
+When no larger open-weight teacher exists, several 2026 methods construct an implicit teacher by conditioning the student model itself on privileged context $c$:
+- **SDFT** (*arXiv:2601.19897*): Conditions the self-teacher on in-context demonstrations to support continual skill acquisition with reduced forgetting relative to off-policy SFT.
+- **SDPO** (*arXiv:2601.20802*): Conditions the self-teacher on natural-language error critiques or execution tracebacks, converting textual feedback into token-level updates.
+- **OPSD / RGSD** (*arXiv:2601.18734*; *arXiv:2606.12507*): Supplies verified solution hints or evaluation rubrics in the teacher prompt while training the unconditioned student to match the resulting token distribution.
 
-### The Self-Distillation Wave (SDFT, SDPO, OPSD, RGSD)
-When you lack a larger teacher model, 2026 research explored turning **context into a self-teacher**:
-- **SDFT** (*Self-Distillation Enables Continual Learning*, `arXiv:2601.19897`): Conditions the model on in-context demonstrations as teacher for its own rollouts—absorbing new domain skills with dramatically less catastrophic forgetting than SFT.
-- **SDPO** (*RL via Self-Distillation*, `arXiv:2601.20802`): Feeds textual error feedback ("your SQL missed the `JOIN` condition") into the self-teacher context, converting qualitative critique into dense per-token gradients.
-- **RGSD** (*Rubric-Guided Self-Distillation*, `arXiv:2606.12507`): Conditions the self-teacher on the evaluation rubric itself to distill rubric adherence without paying for an online LLM judge during every RL step.
+### Empirical Caveats (Late-2026 Re-evaluations)
 
----
+Controlled evaluations across mathematical, scientific, and code benchmarks (*Does Self-Distillation Improve Reasoning?*, *arXiv:2610.18613*; *From Self-Distillation to Self-Practice*, *arXiv:2609.29051*) identify three structural limitations of privileged-context self-distillation:
 
-## 4. Critical Late-2026 Reality Check: When Self-Distillation Fails
-
-Before betting a production roadmap on privileged-information self-distillation (SDPO / OPSD / RGSD), weigh three crucial empirical warnings published in late 2026:
-
-1. **Weak Out-of-Distribution Generalization** (*Does Self-Distillation Improve Reasoning?*, `arXiv:2610.18613`): Re-evaluating SDPO and OPSD across math, code, and science found that many reported gains come from in-distribution overfitting rather than genuinely internalizing privileged information, because self-distillation gradients do not reliably align with true expected-reward policy gradients.
-2. **Epistemic Overconfidence & Suppressed Backtracking:** Because the privileged teacher already sees the answer or rubric, it never hesitates or backtracks ("wait, let me double-check"). Distilling directly from it suppresses the student's uncertainty verbalization and self-correction cues—making the model brittle on unfamiliar production inputs.
-3. **Multi-Turn Instability** (*From Self-Distillation to Self-Practice*, `arXiv:2609.29051`; Will Brown): Privileged hints in multi-turn self-teachers frequently destabilize agentic training. Mixing **attractive (correct) and repulsive (incorrect) teachers** (*On Repulsive and Attractive Teachers*, 2026) or converting hints into guided exploration rollouts trained with **GRPO** ("Self-Practice") proves far more robust.
-
-:::warning
-**Practical Production Verdict on Distillation (Nov 2026):**
-- **Off-Policy SFT / iSFT:** Use for cold-start formatting, high-volume structured tasks, and clinical/legal draft repair (Baseten iSFT).
-- **Cross-Model On-Policy Distillation (OPD):** Use whenever you have a genuinely stronger open-weight teacher (same tokenizer family) and want a 4B–32B student at 10× lower compute than RL.
-- **Privileged Self-Distillation (SDFT / SDPO / RGSD):** Treat as a targeted tool for *continual skill/knowledge transfer* and always validate on strict out-of-distribution holdouts—do **not** assume it replaces GRPO/GSPO on hard reasoning or multi-turn agents.
-:::
+1. **Gradient misalignment and OOD fragility.** Minimizing divergence toward a hint-conditioned self-teacher does not, in general, align with the policy gradient of expected task reward; observed gains frequently reflect in-distribution style transfer rather than out-of-distribution generalization.
+2. **Suppression of epistemic uncertainty and backtracking.** Because a teacher conditioned on a gold solution or rubric already possesses the answer path, its token distribution assigns low probability to exploratory hesitation and self-correction markers (e.g., re-verifying intermediate assumptions). Distilling directly from this distribution reduces the student's capacity to recover when its initial hypothesis on an unseen test instance is incorrect.
+3. **Multi-turn instability.** In multi-turn agent loops, privileged self-distillation often destabilizes exploration. Incorporating contrastive negative teachers (*On Repulsive and Attractive Teachers*, 2026) or using hints strictly to generate exploratory rollouts subsequently optimized via standard **GRPO** ("Self-Practice", *arXiv:2609.29051*) yields more robust generalization.
 
 ---
 
-## 5. The Continual Learning Bridge: Harness Memory → Weight Distillation
+## 4. Consolidation of External Memory into Model Weights
 
-A recurring enterprise challenge—explored in both **Engram × Harvey** (27B firm knowledge self-study) and continual-learning agent research—is that **naive continual pre-training or frequent SFT either learns too little or causes catastrophic forgetting**.
+In enterprise deployments where agents accumulate domain knowledge across sessions, continual pretraining or repeated off-policy SFT faces a plasticity–stability trade-off: small updates fail to retain new facts reliably, whereas aggressive updates degrade general reasoning.
 
-The winning 2026 hybrid architecture works in two loops:
-1. **Fast Loop (Learn in the Harness & Memory):** Give the agent persistent structured memory; use RL to train the agent's *memory policy* (when to store user corrections, when to retrieve them, and how to apply them across sessions).
-2. **Slow Loop (Distill Verified Behavior into Weights):** Periodically consolidate high-frequency, verified memory-mediated trajectories into compact student weights via **On-Policy Distillation / SDFT / LoRA + SLERP**—keeping the runtime scaffold thin and fast without corrupting core reasoning.
+A two-timescale architecture—exemplified by parameter-efficient self-study (*Engram × Harvey, 2026*) and memory-mediated RL—separates acquisition from consolidation:
+1. **Inference-time state (fast timescale):** Store corrections, precedents, and environment feedback in structured external memory; train the policy via RL to decide *when* to write and retrieve memory entries.
+2. **Parametric consolidation (slow timescale):** Periodically distill high-frequency, verified trajectories into compact LoRA adapters via cross-model OPD or SDFT, reducing runtime context length while preserving core reasoning on held-out retention suites.

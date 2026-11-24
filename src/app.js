@@ -10,76 +10,51 @@
   }
 
   const themeBtn = document.getElementById('theme-toggle');
-  function syncThemeIcon() {
+  function syncThemeLabel() {
     if (!themeBtn) return;
     const isDark = document.documentElement.dataset.theme === 'dark';
-    themeBtn.textContent = isDark ? '☀' : '☾';
-    themeBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    themeBtn.textContent = isDark ? 'Light' : 'Dark';
   }
-  syncThemeIcon();
+  syncThemeLabel();
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = next;
       localStorage.setItem('pt-theme', next);
-      syncThemeIcon();
+      syncThemeLabel();
     });
   }
 
-  // ---- Mobile sidebar drawer ----
-  const menuBtn = document.getElementById('menu-toggle');
-  const sidebar = document.getElementById('sidebar');
-  if (menuBtn && sidebar) {
-    menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
-    document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-        sidebar.classList.remove('open');
-      }
-    });
-  }
-
-  // ---- Interactive Home Decision Matrix ----
-  const decisionTabs = document.querySelectorAll('.decision-tab');
-  const decisionPanels = document.querySelectorAll('.decision-panel');
-  decisionTabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const target = tab.dataset.target;
-      decisionTabs.forEach((t) => t.classList.toggle('active', t === tab));
-      decisionPanels.forEach((p) => p.classList.toggle('active', p.id === target));
-    });
-  });
-
-  // ---- Interactive Case Study Filters ----
-  const csGrid = document.getElementById('case-study-grid');
-  if (csGrid) {
-    const cards = Array.from(csGrid.querySelectorAll('[data-cs-card]'));
+  // ---- Case Studies Table Filters ----
+  const csBody = document.getElementById('case-study-rows');
+  if (csBody) {
+    const rows = Array.from(csBody.querySelectorAll('[data-cs-row]'));
     const countEl = document.getElementById('cs-count');
     const searchInput = document.getElementById('cs-search');
     const state = { method: 'all', tier: 'all', size: 'all', q: '' };
 
     function applyCsFilter() {
       let visible = 0;
-      cards.forEach((card) => {
-        const methods = (card.dataset.methods || '').split(',');
-        const tier = card.dataset.tier || '';
-        const size = card.dataset.size || '';
-        const hay = (card.dataset.search || '').toLowerCase();
-        const matchMethod = state.method === 'all' || methods.includes(state.method);
-        const matchTier = state.tier === 'all' || tier === state.tier;
-        const matchSize = state.size === 'all' || size === state.size;
-        const matchQ = !state.q || hay.includes(state.q);
-        const show = matchMethod && matchTier && matchSize && matchQ;
-        card.style.display = show ? '' : 'none';
+      rows.forEach((row) => {
+        const methods = (row.dataset.methods || '').split(',');
+        const tier = row.dataset.tier || '';
+        const size = row.dataset.size || '';
+        const hay = (row.dataset.search || '').toLowerCase();
+        const show =
+          (state.method === 'all' || methods.includes(state.method)) &&
+          (state.tier === 'all' || tier === state.tier) &&
+          (state.size === 'all' || size === state.size) &&
+          (!state.q || hay.includes(state.q));
+        row.style.display = show ? '' : 'none';
         if (show) visible++;
       });
-      if (countEl) countEl.textContent = `Showing ${visible} of ${cards.length} audited industry projects`;
+      if (countEl) countEl.textContent = `${visible} of ${rows.length} documented studies`;
     }
 
     document.querySelectorAll('[data-cs-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const group = btn.dataset.csFilter;
-        const val = btn.dataset.val;
-        state[group] = val;
+        state[group] = btn.dataset.val;
         document.querySelectorAll(`[data-cs-filter="${group}"]`).forEach((b) =>
           b.classList.toggle('active', b === btn)
         );
@@ -96,33 +71,31 @@
     applyCsFilter();
   }
 
-  // ---- Interactive Reference Library Filters ----
+  // ---- Bibliography Filters ----
   const refList = document.getElementById('ref-list');
   if (refList) {
     const items = Array.from(refList.querySelectorAll('[data-ref-item]'));
     const countEl = document.getElementById('ref-count');
     const searchInput = document.getElementById('ref-search');
-    const state = { pillar: 'all', source: 'all', type: 'all', q: '' };
+    const state = { pillar: 'all', type: 'all', q: '' };
 
     function applyRefFilter() {
       let visible = 0;
       items.forEach((item) => {
-        const matchPillar = state.pillar === 'all' || item.dataset.pillar === state.pillar;
-        const matchSource = state.source === 'all' || item.dataset.source === state.source;
-        const matchType = state.type === 'all' || item.dataset.type === state.type;
-        const matchQ = !state.q || (item.dataset.search || '').toLowerCase().includes(state.q);
-        const show = matchPillar && matchSource && matchType && matchQ;
+        const show =
+          (state.pillar === 'all' || item.dataset.pillar === state.pillar) &&
+          (state.type === 'all' || item.dataset.type === state.type) &&
+          (!state.q || (item.dataset.search || '').toLowerCase().includes(state.q));
         item.style.display = show ? '' : 'none';
         if (show) visible++;
       });
-      if (countEl) countEl.textContent = `Showing ${visible} of ${items.length} curated references`;
+      if (countEl) countEl.textContent = `${visible} of ${items.length} entries`;
     }
 
     document.querySelectorAll('[data-ref-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const group = btn.dataset.refFilter;
-        const val = btn.dataset.val;
-        state[group] = val;
+        state[group] = btn.dataset.val;
         document.querySelectorAll(`[data-ref-filter="${group}"]`).forEach((b) =>
           b.classList.toggle('active', b === btn)
         );
@@ -161,15 +134,15 @@
     if (!resultsEl || !searchIndex) return;
     const q = query.trim().toLowerCase();
     const hits = !q
-      ? searchIndex.slice(0, 10)
+      ? searchIndex.slice(0, 8)
       : searchIndex
           .filter((entry) =>
             `${entry.title} ${entry.category} ${entry.excerpt}`.toLowerCase().includes(q)
           )
-          .slice(0, 14);
+          .slice(0, 12);
 
     if (!hits.length) {
-      resultsEl.innerHTML = `<div style="padding:18px;color:var(--text-muted);font-size:0.88rem;">No matches found for "${query.replace(/</g, '&lt;')}".</div>`;
+      resultsEl.innerHTML = `<div style="padding:12px 14px;color:var(--text-muted);font-size:0.8rem;">No matching entries.</div>`;
       return;
     }
 
@@ -179,7 +152,7 @@
         const targetAttr = hit.external ? ' target="_blank" rel="noopener"' : '';
         return `<a class="search-hit" href="${href}"${targetAttr}>
           <div class="search-hit-title">${hit.title}</div>
-          <div class="search-hit-meta">${hit.category} · ${hit.excerpt}</div>
+          <div class="search-hit-meta">${hit.category} — ${hit.excerpt}</div>
         </a>`;
       })
       .join('');

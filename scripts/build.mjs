@@ -25,24 +25,86 @@ function slugify(str) {
     .replace(/^-+|-+$/g, '');
 }
 
+function renderMathToken(expr) {
+  let s = expr.trim();
+  // Common scientific tokens used in docs/*.md
+  const exact = {
+    '\\pm\\mathrm{SE}': '±SE',
+    '\\pm\\text{SE}': '±SE',
+    '\\pm 0.10': '±0.10',
+    '-0.27': '−0.27',
+    '+2.0 \\pm 1.1': '+2.0 ± 1.1',
+    '\\pi_\\theta': '<em>π</em><sub>θ</sub>',
+    '\\pi_T': '<em>π</em><sub><em>T</em></sub>',
+    '\\pi_\\theta(\\cdot \\mid x, c)': '<em>π</em><sub>θ</sub>(· | <em>x</em>, <em>c</em>)',
+    'y \\sim \\pi_\\theta(\\cdot \\mid x)': '<em>y</em> ~ <em>π</em><sub>θ</sub>(· | <em>x</em>)',
+    '\\pi_T(y_t \\mid x, y_{<t})': '<em>π</em><sub><em>T</em></sub>(<em>y</em><sub><em>t</em></sub> | <em>x</em>, <em>y</em><sub>&lt;<em>t</em></sub>)',
+    'D_{\\mathrm{KL}}(\\pi_\\theta \\,\\|\\, \\pi_T)': '<em>D</em><sub>KL</sub>(<em>π</em><sub>θ</sub> ∥ <em>π</em><sub><em>T</em></sub>)',
+    '\\mathcal{O}(1)': '<em>O</em>(1)',
+    '(x, y)': '(<em>x</em>, <em>y</em>)',
+    '(x, y^*)': '(<em>x</em>, <em>y</em>*)',
+    'y^*': '<em>y</em>*',
+    'x': '<em>x</em>',
+    'c': '<em>c</em>',
+    'G': '<em>G</em>',
+    'F_1': '<em>F</em><sub>1</sub>',
+    'N = 25{,}000': '<em>N</em> = 25,000',
+    'r \\in [16, 64]': '<em>r</em> ∈ [16, 64]',
+    'r = 256, \\alpha = 32': '<em>r</em> = 256, α = 32',
+    '5\\times': '5×',
+    '10\\times': '10×',
+    '2\\times': '2×',
+    '1.8\\times': '1.8×',
+    '2.5\\times': '2.5×',
+    '4\\times': '4×',
+    '9\\times': '9×',
+    '30\\times': '30×',
+    '>95\\%': '&gt;95%',
+    '\\to': '→'
+  };
+  if (exact[s]) return exact[s];
+
+  // Exponents like 10^3, 10^{-6}, 5 \times 10^{-5}
+  s = s
+    .replace(/\\times/g, '×')
+    .replace(/\\to/g, '→')
+    .replace(/\\pm/g, '±')
+    .replace(/\\mid/g, '|')
+    .replace(/\\%/g, '%')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/10\^\{([^}]+)\}/g, '10<sup>$1</sup>')
+    .replace(/10\^(\d+)/g, '10<sup>$1</sup>')
+    .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+    .replace(/_([a-zA-Z0-9])/g, '<sub>$1</sub>');
+  return s;
+}
+
 function inlineMd(text) {
-  let out = escapeHtml(text);
-  // inline code
-  out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // clean simple LaTeX tokens for readable rendering without external JS
-  out = out
-    .replace(/\$\\pm\\text\{SE\}\$/g, '±SE')
-    .replace(/\$\\pi_\\theta\$/g, '<em>π</em><sub>θ</sub>')
-    .replace(/\$\\pi_\{\\text\{teacher\}\}\$/g, '<em>π</em><sub>teacher</sub>')
-    .replace(/\$\(x \\to y\^\*\)\$/g, '(<em>x</em> → <em>y</em>*)')
-    .replace(/\$G\$/g, '<em>G</em>');
-  // links [label](url)
-  out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-  // bold & italic
-  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  return out;
+  // Split out inline code first so math/markdown doesn't touch code spans
+  const parts = String(text).split(/(`[^`]+`)/g);
+  return parts
+    .map((part) => {
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return `<code>${escapeHtml(part.slice(1, -1))}</code>`;
+      }
+      // Split math $...$
+      const mathSplit = part.split(/(\$[^$]+\$)/g);
+      return mathSplit
+        .map((seg) => {
+          if (seg.startsWith('$') && seg.endsWith('$')) {
+            return renderMathToken(seg.slice(1, -1));
+          }
+          let out = escapeHtml(seg);
+          out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+          out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+          out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+          out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+          return out;
+        })
+        .join('');
+    })
+    .join('');
 }
 
 function renderMarkdown(md) {
@@ -54,25 +116,23 @@ function renderMarkdown(md) {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Blank line
     if (!line.trim()) {
       i++;
       continue;
     }
 
-    // Callout blocks :::insight / :::field / :::warning
+    // Academic remark blocks :::insight / :::field / :::warning
     const calloutMatch = line.match(/^:::(insight|field|warning)\s*$/);
     if (calloutMatch) {
-      const kind = calloutMatch[1];
       i++;
       const inner = [];
       while (i < lines.length && !lines[i].match(/^:::\s*$/)) {
         inner.push(lines[i]);
         i++;
       }
-      i++; // skip closing :::
+      i++;
       const innerHtml = renderMarkdown(inner.join('\n')).html;
-      html.push(`<div class="callout callout-${kind}">${innerHtml}</div>`);
+      html.push(`<div class="remark">${innerHtml}</div>`);
       continue;
     }
 
@@ -97,7 +157,7 @@ function renderMarkdown(md) {
         qLines.push(lines[i].replace(/^>\s?/, '').trim());
         i++;
       }
-      html.push(`<blockquote class="callout callout-insight"><p>${inlineMd(qLines.join(' '))}</p></blockquote>`);
+      html.push(`<blockquote class="remark"><p>${inlineMd(qLines.join(' '))}</p></blockquote>`);
       continue;
     }
 
@@ -114,7 +174,7 @@ function renderMarkdown(md) {
       const level = hMatch[1].length;
       const rawText = hMatch[2].trim();
       const id = slugify(rawText);
-      if (level === 2 || level === 3) {
+      if (level === 2) {
         toc.push({ level, id, text: rawText.replace(/\*\*/g, '').replace(/`/g, '') });
       }
       html.push(`<h${level} id="${id}">${inlineMd(rawText)}</h${level}>`);
@@ -132,7 +192,7 @@ function renderMarkdown(md) {
           .split('|')
           .map((c) => c.trim());
       const headers = parseRow(line);
-      i += 2; // skip header + separator
+      i += 2;
       const rows = [];
       while (i < lines.length && lines[i].includes('|') && lines[i].trim() !== '') {
         rows.push(parseRow(lines[i]));
@@ -146,7 +206,7 @@ function renderMarkdown(md) {
       continue;
     }
 
-    // Unordered list (supports 2-space indented sub-bullets)
+    // Unordered list
     if (/^\s*-\s+/.test(line)) {
       const items = [];
       while (i < lines.length && /^\s*-\s+/.test(lines[i])) {
@@ -199,141 +259,70 @@ function renderMarkdown(md) {
   return { html: html.join('\n'), toc };
 }
 
-function methodBadges(methods) {
-  return methods
-    .map((m) => {
-      const cls = m === 'SFT' ? 'badge-sft' : m === 'RL' ? 'badge-rl' : 'badge-distill';
-      return `<span class="badge ${cls}">${escapeHtml(m)}</span>`;
-    })
-    .join('');
-}
-
-function tierBadge(tier, label) {
-  const cls = tier === 'Tier 1' ? 'badge-tier1' : 'badge-tier2';
-  return `<span class="badge ${cls}">${escapeHtml(tier)} · ${escapeHtml(label)}</span>`;
-}
-
-function lifecycleSvg() {
+function pipelineFigureSvg() {
   return `
-  <div class="diagram-card">
-    <svg viewBox="0 0 920 215" width="100%" height="auto" role="img" aria-label="Industrial post-training pipeline for small and midsize models">
+  <figure class="tech-figure">
+    <svg viewBox="0 0 840 148" width="100%" height="auto" role="img" aria-label="Four-stage industrial post-training architecture">
       <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M 0 1 L 10 5 L 0 9 z" fill="currentColor" opacity="0.55"/>
+        <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 1 L 7 4 L 0 7 z" fill="currentColor"/>
         </marker>
       </defs>
-      <g font-family="Inter, system-ui, sans-serif" fill="currentColor">
-        <!-- Box 1 -->
-        <rect x="14" y="34" width="182" height="128" rx="12" fill="var(--bg-subtle)" stroke="var(--border-strong)" stroke-width="1.5"/>
-        <text x="28" y="60" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--text-muted)">01 · FOUNDATION</text>
-        <text x="28" y="83" font-size="14" font-weight="700">Open Small/Mid Base</text>
-        <text x="28" y="105" font-size="11.5" fill="var(--text-secondary)">4B–35B dense or MoE</text>
-        <text x="28" y="122" font-size="11.5" fill="var(--text-secondary)">Qwen3.x · Llama-3 · GLM</text>
-        <text x="28" y="144" font-size="10.5" fill="var(--accent)">+ Stateful Harness First</text>
+      <g fill="none" stroke="currentColor" stroke-width="1">
+        <rect x="6" y="16" width="178" height="86"/>
+        <rect x="222" y="16" width="178" height="86"/>
+        <rect x="438" y="16" width="186" height="86"/>
+        <rect x="662" y="16" width="172" height="86"/>
+        <line x1="184" y1="59" x2="218" y2="59" marker-end="url(#arr)"/>
+        <line x1="400" y1="59" x2="434" y2="59" marker-end="url(#arr)"/>
+        <line x1="624" y1="59" x2="658" y2="59" marker-end="url(#arr)"/>
+        <path d="M 748 102 L 748 130 L 531 130 L 531 106" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+      </g>
+      <g fill="currentColor" font-family="Inter, sans-serif">
+        <text x="16" y="34" font-size="9.5" opacity="0.65">I. PRETRAINED BASE &amp; HARNESS</text>
+        <text x="16" y="53" font-size="11.5" font-weight="600">Compact Open Checkpoint</text>
+        <text x="16" y="71" font-size="10.5" opacity="0.8">4B–35B dense or 35B-A3B MoE</text>
+        <text x="16" y="87" font-size="10" opacity="0.65">Externalized state &amp; eval suite</text>
 
-        <line x1="196" y1="98" x2="234" y2="98" stroke="currentColor" stroke-opacity="0.45" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="232" y="34" font-size="9.5" opacity="0.65">II. SUPERVISED INITIALIZATION</text>
+        <text x="232" y="53" font-size="11.5" font-weight="600">LoRA SFT / Iterative SFT</text>
+        <text x="232" y="71" font-size="10.5" opacity="0.8">Schema &amp; protocol alignment</text>
+        <text x="232" y="87" font-size="10" opacity="0.65">Rubric-repaired drafts (x, y*)</text>
 
-        <!-- Box 2 -->
-        <rect x="242" y="34" width="196" height="128" rx="12" fill="var(--cyan-soft)" stroke="var(--cyan-border)" stroke-width="1.5"/>
-        <text x="256" y="60" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--cyan)">02 · SFT / iSFT</text>
-        <text x="256" y="83" font-size="14" font-weight="700">Format &amp; Repair</text>
-        <text x="256" y="105" font-size="11.5" fill="var(--text-secondary)">LoRA SFT · Baseten iSFT</text>
-        <text x="256" y="122" font-size="11.5" fill="var(--text-secondary)">500–25k clean/repaired</text>
-        <text x="256" y="144" font-size="10.5" fill="var(--cyan)">Fixes schema &amp; cold start</text>
+        <text x="448" y="34" font-size="9.5" opacity="0.65">III. ON-POLICY OPTIMIZATION</text>
+        <text x="448" y="53" font-size="11.5" font-weight="600">RLVR / Rubric RL / OPD</text>
+        <text x="448" y="71" font-size="10.5" opacity="0.8">GRPO, DAPO, GSPO, or reverse KL</text>
+        <text x="448" y="87" font-size="10" opacity="0.65">Error recovery &amp; token efficiency</text>
 
-        <line x1="438" y1="98" x2="476" y2="98" stroke="currentColor" stroke-opacity="0.45" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="672" y="34" font-size="9.5" opacity="0.65">IV. DEPLOYMENT</text>
+        <text x="672" y="53" font-size="11.5" font-weight="600">VPC Serving Fleet</text>
+        <text x="672" y="71" font-size="10.5" opacity="0.8">vLLM / SGLang · FP8 · Multi-LoRA</text>
+        <text x="672" y="87" font-size="10" opacity="0.65">5×–64× lower inference cost</text>
 
-        <!-- Box 3 -->
-        <rect x="484" y="22" width="214" height="152" rx="12" fill="var(--accent-soft)" stroke="var(--accent-border)" stroke-width="1.5"/>
-        <text x="498" y="48" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--accent)">03 · RL OR ON-POLICY DISTILL</text>
-        <text x="498" y="71" font-size="14" font-weight="700">On-Policy Optimization</text>
-        <text x="498" y="95" font-size="11.5" fill="var(--text-secondary)">• RLVR / Rubric RL (GRPO/GSPO)</text>
-        <text x="498" y="114" font-size="11.5" fill="var(--text-secondary)">• On-Policy Distillation (OPD)</text>
-        <text x="498" y="133" font-size="11.5" fill="var(--text-secondary)">• Online Telemetry RL (Cursor)</text>
-        <text x="498" y="156" font-size="10.5" fill="var(--accent)">Learns recovery &amp; tool efficiency</text>
-
-        <line x1="698" y1="98" x2="734" y2="98" stroke="currentColor" stroke-opacity="0.45" stroke-width="2" marker-end="url(#arrow)"/>
-
-        <!-- Box 4 -->
-        <rect x="742" y="34" width="164" height="128" rx="12" fill="var(--emerald-soft)" stroke="var(--emerald-border)" stroke-width="1.5"/>
-        <text x="756" y="60" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--emerald)">04 · PRODUCTION</text>
-        <text x="756" y="83" font-size="14" font-weight="700">Sovereign SLM</text>
-        <text x="756" y="105" font-size="11.5" fill="var(--text-secondary)">vLLM · FP8 · Multi-LoRA</text>
-        <text x="756" y="122" font-size="11.5" fill="var(--text-secondary)">5×–64× lower cost</text>
-        <text x="756" y="144" font-size="10.5" fill="var(--emerald)">Sub-sec · VPC-compliant</text>
-
-        <!-- Feedback arc -->
-        <path d="M 824 162 C 824 202, 590 204, 590 176" fill="none" stroke="var(--emerald)" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
-        <text x="646" y="202" font-size="10.5" font-family="JetBrains Mono, monospace" fill="var(--emerald)">Production telemetry &amp; failure traces feed next cycle</text>
+        <text x="556" y="142" font-size="9.5" opacity="0.7">Logged trajectories &amp; failure slices</text>
       </g>
     </svg>
-    <div class="diagram-caption">The 2026 Enterprise Post-Training Loop: harness &amp; evals first → SFT/iSFT cold-start → on-policy RL or OPD → sovereign low-latency serving.</div>
-  </div>`;
-}
-
-function distillationSvg() {
-  return `
-  <div class="diagram-card">
-    <svg viewBox="0 0 900 200" width="100%" height="auto" role="img" aria-label="Comparison of Off-Policy Distillation, Outcome RL, and On-Policy Distillation">
-      <g font-family="Inter, system-ui, sans-serif" fill="currentColor">
-        <rect x="12" y="18" width="276" height="162" rx="12" fill="var(--bg-subtle)" stroke="var(--border-strong)" stroke-width="1.4"/>
-        <text x="28" y="44" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--cyan)">OFF-POLICY DISTILLATION (SFT)</text>
-        <text x="28" y="68" font-size="13.5" font-weight="700">Teacher Writes → Student Mimics</text>
-        <text x="28" y="94" font-size="11.5" fill="var(--text-secondary)">✓ Dense per-token cross-entropy</text>
-        <text x="28" y="114" font-size="11.5" fill="var(--text-secondary)">✓ Fast &amp; simple single-turn ROI</text>
-        <text x="28" y="136" font-size="11.5" fill="var(--rose)">✗ Exposure bias (never fixes own drift)</text>
-        <text x="28" y="158" font-size="11" fill="var(--text-muted)">Best for: Booking.com, Checkr, cold-start</text>
-
-        <rect x="312" y="18" width="276" height="162" rx="12" fill="var(--bg-subtle)" stroke="var(--border-strong)" stroke-width="1.4"/>
-        <text x="328" y="44" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--accent)">OUTCOME RL (GRPO / GSPO)</text>
-        <text x="328" y="68" font-size="13.5" font-weight="700">Student Explores → End Score</text>
-        <text x="328" y="94" font-size="11.5" fill="var(--text-secondary)">✓ On-policy (recovers from mistakes)</text>
-        <text x="328" y="114" font-size="11.5" fill="var(--text-secondary)">✓ Can surpass any teacher model</text>
-        <text x="328" y="136" font-size="11.5" fill="var(--amber)">△ Sparse reward = high compute cost</text>
-        <text x="328" y="158" font-size="11" fill="var(--text-muted)">Best for: Coinbase, SWE-grep, ART·E</text>
-
-        <rect x="612" y="18" width="276" height="162" rx="12" fill="var(--emerald-soft)" stroke="var(--emerald-border)" stroke-width="1.8"/>
-        <text x="628" y="44" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700" fill="var(--emerald)">ON-POLICY DISTILLATION (OPD)</text>
-        <text x="628" y="68" font-size="13.5" font-weight="700">Student Rolls Out → Teacher Grades Token-by-Token</text>
-        <text x="628" y="94" font-size="11.5" fill="var(--text-secondary)">✓ On-policy (fixes exposure bias)</text>
-        <text x="628" y="114" font-size="11.5" fill="var(--text-secondary)">✓ Dense per-token reverse KL (9×–30× cheaper)</text>
-        <text x="628" y="136" font-size="11.5" fill="var(--amber)">△ Needs open-weight teacher logprobs</text>
-        <text x="628" y="158" font-size="11" fill="var(--emerald)">Best for: 235B/397B → 8B–32B compression</text>
-      </g>
-    </svg>
-    <div class="diagram-caption">Why On-Policy Distillation (OPD) bridges SFT and RL when compressing a stronger open-weight teacher into a compact production student.</div>
-  </div>`;
+    <figcaption><strong>Figure 1.</strong> Canonical post-training pipeline for industrial small and midsize language models. Deterministic state management and evaluation design precede supervised initialization (SFT/iSFT) and on-policy optimization (RL or On-Policy Distillation).</figcaption>
+  </figure>`;
 }
 
 function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
   const navItems = [
     { key: 'home', label: 'Overview', href: '' },
-    { key: 'cases', label: 'Case Studies', href: 'case-studies/', pill: `${caseStudies.length}` },
-    { key: 'sft', label: 'SFT & iSFT', href: 'sft/' },
+    { key: 'sft', label: 'SFT', href: 'sft/' },
     { key: 'rl', label: 'Reinforcement Learning', href: 'rl/' },
-    { key: 'distill', label: 'Distillation & OPD', href: 'distillation/' },
-    { key: 'frameworks', label: 'Frameworks & Compute', href: 'frameworks/', pill: `${frameworksData.frameworks.length}` },
-    { key: 'playbook', label: 'Best Practices', href: 'best-practices/' },
-    { key: 'refs', label: 'Reference Library', href: 'references/', pill: `${references.length}` }
+    { key: 'distill', label: 'Distillation', href: 'distillation/' },
+    { key: 'cases', label: 'Case Studies', href: 'case-studies/' },
+    { key: 'frameworks', label: 'Frameworks', href: 'frameworks/' },
+    { key: 'playbook', label: 'Protocol', href: 'best-practices/' },
+    { key: 'blueprint', label: 'Industrial Sequence', href: 'company-blueprint/' },
+    { key: 'refs', label: 'Bibliography', href: 'references/' }
   ];
 
-  const topbarNav = navItems
-    .slice(0, 6)
+  const navLinks = navItems
     .map(
       (n) =>
-        `<a href="${rootPrefix}${n.href}" class="${activeNav === n.key ? 'active' : ''}">${n.label}</a>`
-    )
-    .join('');
-
-  const sidebarCases = caseStudies
-    .slice(0, 8)
-    .map(
-      (cs) =>
-        `<li><a href="${rootPrefix}case-studies/${cs.slug}/" class="${
-          activeNav === `cs:${cs.slug}` ? 'active' : ''
-        }"><span>${escapeHtml(cs.company.split(' ')[0])}: ${escapeHtml(
-          cs.title.replace(cs.company, '').replace(/^[\s×·-]+/, '').slice(0, 22)
-        )}</span><span class="sidebar-pill">${escapeHtml(cs.modelSize.split(' ')[0])}</span></a></li>`
+        `<a href="${rootPrefix}${n.href}" class="${activeNav === n.key || (n.key === 'cases' && activeNav.startsWith('cs:')) ? 'active' : ''}">${n.label}</a>`
     )
     .join('');
 
@@ -342,79 +331,39 @@ function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${escapeHtml(title)} · Industrial Post-Training Hub</title>
+  <title>${escapeHtml(title)} — Post-Training Compendium</title>
   <meta name="description" content="${escapeHtml(description)}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="${rootPrefix}assets/styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-left">
-      <button id="menu-toggle" class="menu-btn" aria-label="Toggle navigation">☰</button>
-      <a class="brand" href="${rootPrefix}">
-        <span class="brand-mark">PT</span>
-        <span>Post-Training Industry Hub</span>
-      </a>
+  <header class="site-header">
+    <div class="header-top">
+      <a class="site-title" href="${rootPrefix}">Post-Training of Small &amp; Midsize Models</a>
+      <div class="header-controls">
+        <button id="open-search" class="text-btn" type="button">Search [/]</button>
+        <span>·</span>
+        <button id="theme-toggle" class="text-btn" type="button">Dark</button>
+      </div>
     </div>
-    <nav class="topbar-nav" aria-label="Primary">${topbarNav}</nav>
-    <div class="topbar-actions">
-      <button id="open-search" class="search-trigger" type="button">
-        <span>Search hub…</span>
-        <kbd>/</kbd>
-      </button>
-      <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle color theme">☾</button>
-    </div>
+    <nav class="site-nav" aria-label="Primary navigation">${navLinks}</nav>
   </header>
 
-  <div class="layout">
-    <aside id="sidebar" class="sidebar" aria-label="Sidebar navigation">
-      <div class="sidebar-group">
-        <div class="sidebar-label">Start Here</div>
-        <ul class="sidebar-links">
-          <li><a href="${rootPrefix}" class="${activeNav === 'home' ? 'active' : ''}"><span>Executive Overview</span></a></li>
-          <li><a href="${rootPrefix}case-studies/" class="${activeNav === 'cases' ? 'active' : ''}"><span>Audited Case Studies</span><span class="sidebar-pill">${caseStudies.length}</span></a></li>
-          <li><a href="${rootPrefix}best-practices/" class="${activeNav === 'playbook' ? 'active' : ''}"><span>Field Playbook (10 Rules)</span></a></li>
-          <li><a href="${rootPrefix}company-blueprint/" class="${activeNav === 'blueprint' ? 'active' : ''}"><span>Company Blueprint (Ziv)</span><span class="sidebar-pill">New</span></a></li>
-        </ul>
-      </div>
-      <div class="sidebar-group">
-        <div class="sidebar-label">Core Methods</div>
-        <ul class="sidebar-links">
-          <li><a href="${rootPrefix}sft/" class="${activeNav === 'sft' ? 'active' : ''}"><span>SFT &amp; Iterative SFT</span></a></li>
-          <li><a href="${rootPrefix}rl/" class="${activeNav === 'rl' ? 'active' : ''}"><span>RL (GRPO · GSPO · Online)</span></a></li>
-          <li><a href="${rootPrefix}distillation/" class="${activeNav === 'distill' ? 'active' : ''}"><span>Distillation &amp; OPD</span></a></li>
-        </ul>
-      </div>
-      <div class="sidebar-group">
-        <div class="sidebar-label">Stack &amp; Sources</div>
-        <ul class="sidebar-links">
-          <li><a href="${rootPrefix}frameworks/" class="${activeNav === 'frameworks' ? 'active' : ''}"><span>Frameworks &amp; Compute</span><span class="sidebar-pill">${frameworksData.frameworks.length}</span></a></li>
-          <li><a href="${rootPrefix}references/" class="${activeNav === 'refs' ? 'active' : ''}"><span>Reference Library</span><span class="sidebar-pill">${references.length}</span></a></li>
-        </ul>
-      </div>
-      <div class="sidebar-group">
-        <div class="sidebar-label">Top Tier-1 Deep Dives</div>
-        <ul class="sidebar-links">${sidebarCases}</ul>
-      </div>
-    </aside>
+  <main class="page-container">
+    ${bodyHtml}
+    <footer class="site-footer">
+      <span>Technical Compendium on SFT, Reinforcement Learning, and Distillation (4B–35B Models)</span>
+      <span>Updated November 2026 · <a href="https://github.com/sr-networks/posttrain" target="_blank" rel="noopener">Source Repository</a></span>
+    </footer>
+  </main>
 
-    <main class="main-wrap">
-      ${bodyHtml}
-      <footer class="site-footer">
-        <span>Industrial Post-Training of Small &amp; Midsize Models (4B–35B) · SFT, RL &amp; Distillation</span>
-        <span>Synthesized from Curated Notes &amp; 2025–2026 Industry Engineering Reports · GitHub &amp; GitLab Pages</span>
-      </footer>
-    </main>
-  </div>
-
-  <div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search site">
+  <div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search compendium">
     <div class="search-dialog">
       <div class="search-head">
-        <span style="color:var(--text-muted)">⌕</span>
-        <input id="global-search-input" type="search" placeholder="Search case studies, methods (GRPO, iSFT, OPD), frameworks, papers…" autocomplete="off">
-        <kbd style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted)">ESC</kbd>
+        <input id="global-search-input" type="search" placeholder="Search chapters, studies, algorithms, or references…" autocomplete="off">
+        <span style="font-size:0.72rem;color:var(--text-muted)">ESC</span>
       </div>
       <div id="global-search-results" class="search-results"></div>
     </div>
@@ -426,202 +375,144 @@ function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
 }
 
 function buildHomePage() {
-  const tier1Count = caseStudies.filter((c) => c.businessValueTier === 'Tier 1').length;
-  const obsidianRefs = references.filter((r) => r.source === 'Obsidian Vault' || r.source === 'Apple Notes').length;
-
-  const scorecardRows = caseStudies
+  const studyRows = caseStudies
     .map(
       (cs) => `<tr>
-        <td><a href="./case-studies/${cs.slug}/"><strong>${escapeHtml(cs.title)}</strong></a><br><span style="font-size:0.78rem;color:var(--text-muted)">${escapeHtml(cs.industry)}</span></td>
+        <td><a href="./case-studies/${cs.slug}/">${escapeHtml(cs.title)}</a></td>
+        <td>${escapeHtml(cs.industry)}</td>
         <td><code>${escapeHtml(cs.modelSize)}</code></td>
-        <td><div class="badge-row" style="margin:0">${methodBadges(cs.methods)}</div><span style="font-size:0.77rem;color:var(--text-muted)">${escapeHtml(cs.methodLabel)}</span></td>
-        <td><strong>${escapeHtml(cs.headlineMetrics[0].value)}</strong> ${escapeHtml(cs.headlineMetrics[0].label)} · ${escapeHtml(cs.headlineMetrics[1].value)} ${escapeHtml(cs.headlineMetrics[1].label)}</td>
-        <td>${tierBadge(cs.businessValueTier, cs.businessValueTag)}</td>
+        <td>${escapeHtml(cs.methodLabel)}</td>
+        <td>${escapeHtml(cs.headlineMetrics[0].value)} ${escapeHtml(cs.headlineMetrics[0].label)}; ${escapeHtml(cs.headlineMetrics[1].value)} ${escapeHtml(cs.headlineMetrics[1].label)}</td>
+        <td>${escapeHtml(cs.businessValueTier)}</td>
       </tr>`
     )
     .join('');
 
   const bodyHtml = `
-    <section class="hero">
-      <div class="eyebrow">Industrial Post-Training Knowledge Hub · Updated Nov 2026</div>
-      <h1>Post-Training Small &amp; Midsize Models for Real Industry Value</h1>
-      <p class="hero-lead">
-        A practitioner's guide to <strong>SFT</strong>, <strong>Reinforcement Learning</strong>, and <strong>Distillation</strong> for compact models (4B–35B dense &amp; small-active MoEs). Built by auditing real 2025–2026 production deployments, evaluating genuine business ROI, and consolidating curated practitioner notes and primary engineering reports.
+    <div class="prose">
+      <h1>Post-Training of Small and Midsize Language Models in Industry</h1>
+      <p class="doc-subtitle">A technical synthesis of supervised fine-tuning, reinforcement learning, and knowledge distillation for 4B–35B parameter models across production deployments.</p>
+      <p class="doc-meta">Technical Compendium · November 2026 · ${caseStudies.length} Empirical Case Studies · ${references.length} Annotated References</p>
+    </div>
+
+    <div class="abstract">
+      <div class="abstract-label">Abstract</div>
+      <p>
+        General-purpose frontier models incur substantial latency, per-token expenditure, and data-governance constraints when applied to bounded, high-volume enterprise workloads. Empirical deployments from 2024–2026 demonstrate that small and midsize open-weight models (4B–35B dense checkpoints and sparse Mixture-of-Experts architectures with ~3B active parameters) frequently match or exceed frontier model performance on specialized tasks when adapted via domain-specific post-training. This compendium examines the methodological conditions under which supervised fine-tuning (SFT and iterative SFT), on-policy reinforcement learning (GRPO, DAPO, GSPO, GDPO), and knowledge distillation (off-policy sequence distillation and on-policy reverse-KL distillation) yield measurable operational and economic gains, alongside failure modes in evaluation, reward specification, and numerical stability.
       </p>
-      <div class="hero-cta-row">
-        <a class="btn btn-primary" href="./case-studies/">Explore ${caseStudies.length} Audited Case Studies →</a>
-        <a class="btn btn-secondary" href="./best-practices/">Read the 10-Rule Field Playbook</a>
-        <a class="btn btn-secondary" href="./references/">Browse ${references.length} Curated Links</a>
-      </div>
-      <div class="hero-stats">
-        <div class="stat-box">
-          <div class="stat-val">${tier1Count} / ${caseStudies.length}</div>
-          <div class="stat-lbl">Tier-1 Proven Production ROI Cases</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">5× – 64×</div>
-          <div class="stat-lbl">Documented Cost Savings vs. Frontier APIs</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">4B – 35B</div>
-          <div class="stat-lbl">Sweet-Spot Production Parameter Range</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">${obsidianRefs}+</div>
-          <div class="stat-lbl">Curated Vault &amp; Notes Links Indexed</div>
-        </div>
-      </div>
-    </section>
-
-    <h2 class="section-heading">The Three Core Pillars</h2>
-    <p class="section-sub">Deep technical guides covering when each method creates real business value, which algorithms work in 2026, and where teams burn compute.</p>
-    <div class="card-grid-3">
-      <a class="card card-link" href="./sft/">
-        <div class="badge-row"><span class="badge badge-sft">Pillar 01 · SFT</span><span class="badge">LoRA · iSFT · Shadow-FT</span></div>
-        <h3>Supervised Fine-Tuning &amp; Iterative SFT</h3>
-        <p>Why clean LoRA SFT still dominates bounded high-volume tasks, how Baseten's <strong>iSFT</strong> jumped clinical accuracy from 52% to 78%, and how to avoid the hallucination &amp; forgetting tax.</p>
-        <span style="margin-top:auto;font-size:0.84rem;font-weight:600;color:var(--accent)">Read SFT deep dive →</span>
-      </a>
-      <a class="card card-link" href="./rl/">
-        <div class="badge-row"><span class="badge badge-rl">Pillar 02 · RL</span><span class="badge">GRPO · GSPO · DAPO · GDPO</span></div>
-        <h3>Reinforcement Learning (RLVR &amp; Agentic RL)</h3>
-        <p>How Coinbase (9B), Harvey (9B/35B-A3B), Cursor, and OpenPipe (14B) beat frontier APIs—plus reward engineering, Rubric Dropout, and critical multi-turn logprob &amp; token-ID fixes.</p>
-        <span style="margin-top:auto;font-size:0.84rem;font-weight:600;color:var(--accent)">Read RL deep dive →</span>
-      </a>
-      <a class="card card-link" href="./distillation/">
-        <div class="badge-row"><span class="badge badge-distill">Pillar 03 · Distillation</span><span class="badge">KD · OPD · SDFT · PivotOPD</span></div>
-        <h3>Distillation &amp; On-Policy Distillation</h3>
-        <p>From Booking.com off-policy KD to Thinking Machines' <strong>OPD</strong> (9×–30× cheaper than sparse RL)—plus late-2026 empirical caveats on when self-distillation fails out-of-distribution.</p>
-        <span style="margin-top:auto;font-size:0.84rem;font-weight:600;color:var(--accent)">Read Distillation deep dive →</span>
-      </a>
     </div>
 
-    ${lifecycleSvg()}
+    <div class="prose">
+      <h2>1. Motivation and Scope</h2>
+      <p>
+        Industrial post-training is warranted when routing requests to a general-purpose frontier API violates at least one operational constraint: (i) unit inference cost at scale, (ii) tail-latency requirements, (iii) VPC or on-premise data residency, or (iv) task accuracy ceilings caused by domain-specific conventions or version regressions across closed API updates. Conversely, open-ended, low-volume workflows with rapidly shifting specifications rarely justify weight adaptation.
+      </p>
+      <p>
+        Across the ${caseStudies.length} documented engineering studies compiled here, adapted 4B–35B models report 5×–64× reductions in serving cost and 2×–30× reductions in latency relative to frontier baselines, while improving task-specific <em>F</em><sub>1</sub>, recall, or rubric compliance when trained against verified outcomes or calibrated domain rubrics.
+      </p>
+    </div>
 
-    <h2 class="section-heading">Interactive Method Selector: When Should You Use What?</h2>
-    <p class="section-sub">Click the enterprise workload that closest matches your problem to see the highest-ROI post-training method, model tier, and starter stack.</p>
-    <div class="decision-box">
-      <div class="decision-tabs" role="tablist">
-        <button class="decision-tab active" data-target="dec-classify" type="button">High-Volume Tagging / Extraction</button>
-        <button class="decision-tab" data-target="dec-docs" type="button">Long-Context Structured Docs</button>
-        <button class="decision-tab" data-target="dec-agent" type="button">Multi-Turn Search / Tool Agent</button>
-        <button class="decision-tab" data-target="dec-opd" type="button">Compress Strong Open Teacher</button>
-        <button class="decision-tab" data-target="dec-telemetry" type="button">Live User Accept/Reject Loop</button>
-        <button class="decision-tab" data-target="dec-regulated" type="button">Regulated / Zero-Hallucination CX</button>
-      </div>
+    ${pipelineFigureSvg()}
 
-      <div id="dec-classify" class="decision-panel active">
-        <div>
-          <div class="badge-row"><span class="badge badge-sft">Recommended: Off-Policy Teacher KD + LoRA SFT</span></div>
-          <h3 style="margin:6px 0 8px;">Skip RL — Clean Distillation + LoRA SFT Wins Immediately</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);">For millions of daily classification, routing, JSON extraction, or taxonomy tagging calls, RL adds engineering overhead without beating clean supervised distillation. Pair with vLLM multi-LoRA or Medusa speculative decoding.</p>
-          <p style="font-size:0.86rem;"><strong>Proof points:</strong> <a href="./case-studies/marketplace-slms-booking-checkr-uber/">Checkr (30× faster, 5× cheaper) · Booking.com · Uber · DoorDash</a></p>
-        </div>
-        <dl class="decision-meta">
-          <dt>Target Model Size</dt><dd>3.8B – 8B (Llama-3.1-8B, Qwen3-4B/8B)</dd>
-          <dt>Data Needed</dt><dd>2,000 – 50,000 consensus-filtered examples</dd>
-          <dt>Starter Stack</dt><dd>Unsloth or HF TRL + vLLM (1× RTX 4090 / H100)</dd>
-          <dt>Expected ROI</dt><dd>5×–30× lower cost, sub-50ms latency</dd>
-        </dl>
-      </div>
-
-      <div id="dec-docs" class="decision-panel">
-        <div>
-          <div class="badge-row"><span class="badge badge-sft">Recommended: Iterative SFT (iSFT)</span><span class="badge badge-rl">Optional Rubric RL</span></div>
-          <h3 style="margin:6px 0 8px;">Use a Frontier Model as Rubric Grader &amp; Draft Repairer</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);">Standard distilled SFT plateaus around ~55% on 15K–25K token clinical notes, legal memos, or compaction tasks. Have a strong frontier model grade drafts against clinician/lawyer rubrics, repair failures (1–2 rounds), and run SFT strictly on 100%-passing outputs.</p>
-          <p style="font-size:0.86rem;"><strong>Proof points:</strong> <a href="./case-studies/baseten-medical-scribes-isft/">Baseten Medical Scribes (66–78% acc)</a> · <a href="./case-studies/harvey-legal-agent-suite/">Harvey Compaction Agent</a></p>
-        </div>
-        <dl class="decision-meta">
-          <dt>Target Model Size</dt><dd>27B – 32B (Qwen3-32B, Qwen3.5-27B)</dd>
-          <dt>Data Needed</dt><dd>1,000 – 25,000 rubric-repaired traces (high-rank LoRA r=128–256)</dd>
-          <dt>Starter Stack</dt><dd>HF TRL / Unsloth / Baseten Loops</dd>
-          <dt>Expected ROI</dt><dd>+14–22 pts over standard SFT, HIPAA/VPC compliant</dd>
-        </dl>
-      </div>
-
-      <div id="dec-agent" class="decision-panel">
-        <div>
-          <div class="badge-row"><span class="badge badge-rl">Recommended: Multi-Turn GRPO / DAPO / GSPO</span></div>
-          <h3 style="margin:6px 0 8px;">Fix the Stateful Harness First, Then Run Multi-Turn RL</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);">Offload deduplication and bookkeeping to code (Harness-1). If you have verifiable outcomes (fraud labels, SQL execution, file/line F1, unit tests) or calibrated rubrics, multi-turn RL cuts redundant tool calls by 50%–67% and beats frontier APIs at a fraction of cost.</p>
-          <p style="font-size:0.86rem;"><strong>Proof points:</strong> <a href="./case-studies/coinbase-fraud-agent/">Coinbase 9B</a> · <a href="./case-studies/openpipe-art-e/">OpenPipe ART·E 14B</a> · <a href="./case-studies/cognition-swe-grep/">Cognition SWE-grep</a> · <a href="./case-studies/harvey-legal-agent-suite/">Harvey 35B-A3B</a></p>
-        </div>
-        <dl class="decision-meta">
-          <dt>Target Model Size</dt><dd>8B – 14B dense or 35B-A3B MoE</dd>
-          <dt>Data Needed</dt><dd>500 – 2,000 realistic task environments + verifier</dd>
-          <dt>Starter Stack</dt><dd>OpenPipe ART (1× H100), SkyRL, verl, or PrimeRL</dd>
-          <dt>Expected ROI</dt><dd>5×–64× cheaper, -50% tokens/latency, higher F1</dd>
-        </dl>
-      </div>
-
-      <div id="dec-opd" class="decision-panel">
-        <div>
-          <div class="badge-row"><span class="badge badge-distill">Recommended: Cross-Model On-Policy Distillation (OPD)</span></div>
-          <h3 style="margin:6px 0 8px;">Dense Token-Level Feedback Without Exposure Bias</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);">When a large open-weight model (e.g., Qwen3-235B or GLM-5.3) already nails your task but is too slow/expensive to serve, sample rollouts from your 8B–32B student and train on per-token reverse KL from the teacher. Gets 9×–30× better compute efficiency than sparse RL.</p>
-          <p style="font-size:0.86rem;"><strong>Proof points:</strong> <a href="./case-studies/thinking-machines-bridgewater-opd/">Thinking Machines × Bridgewater (1/14th cost, 9×–30× compute efficiency)</a></p>
-        </div>
-        <dl class="decision-meta">
-          <dt>Target Model Size</dt><dd>4B – 32B student from 100B+ same-tokenizer open teacher</dd>
-          <dt>Data Needed</dt><dd>Unlabeled domain prompts + open teacher logprob endpoint</dd>
-          <dt>Starter Stack</dt><dd>verl (OPD), PrimeRL (OPD), HF TRL DistillationTrainer, Tinker</dd>
-          <dt>Expected ROI</dt><dd>10×–14× serving savings, 9×–30× cheaper training than RL</dd>
-        </dl>
-      </div>
-
-      <div id="dec-telemetry" class="decision-panel">
-        <div>
-          <div class="badge-row"><span class="badge badge-rl">Recommended: Online Policy-Gradient RL</span></div>
-          <h3 style="margin:6px 0 8px;">Turn Product Interactions Into a Self-Improving Moat</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);">If your product generates hundreds of thousands of daily accept / dismiss / edit / escalate signals, tie each trace strictly to its serving checkpoint ID and run continuous on-policy policy-gradient updates—teaching the model both what to generate and when to stay silent.</p>
-          <p style="font-size:0.86rem;"><strong>Proof points:</strong> <a href="./case-studies/cursor-tab-online-rl/">Cursor Tab Online RL (-21% noise, +28% accept rate, 1.5–2h deploys)</a></p>
-        </div>
-        <dl class="decision-meta">
-          <dt>Target Model Size</dt><dd>Small ultra-low-latency model (≤10B)</dd>
-          <dt>Data Needed</dt><dd>High-frequency logged checkpoint IDs + logprobs + user actions</dd>
-          <dt>Starter Stack</dt><dd>Custom async Ray/vLLM pipeline + automated shadow eval gates</dd>
-          <dt>Expected ROI</dt><dd>Compounding daily UX &amp; retention moat</dd>
-        </dl>
-      </div>
-
-      <div id="dec-regulated" class="decision-panel">
-        <div>
-          <div class="badge-row"><span class="badge badge-sft">Abstention SFT + Grounding RL</span><span class="badge badge-tier1">VPC / Sovereign</span></div>
-          <h3 style="margin:6px 0 8px;">Train Calibrated Abstention &amp; Disambiguation Explicitly</h3>
-          <p style="font-size:0.9rem;color:var(--text-secondary);">In customer support, banking, legal, and healthcare, confident guessing kills adoption. Train explicitly on unanswerable/ambiguous cases so the model asks clarifying questions or escalates cleanly—and blend static domain corpora earlier (mid-training) if needed to prevent forgetting.</p>
-          <p style="font-size:0.86rem;"><strong>Proof points:</strong> <a href="./case-studies/intercom-fin-apex/">Intercom Fin Apex (~76% resolution)</a> · <a href="./case-studies/mercor-apex-and-nova-forge/">Amazon Nova Forge &amp; Artificial Genius</a></p>
-        </div>
-        <dl class="decision-meta">
-          <dt>Target Model Size</dt><dd>8B – 32B deployed in private VPC / on-prem</dd>
-          <dt>Data Needed</dt><dd>Paired answerable + unanswerable + ambiguous scenarios</dd>
-          <dt>Starter Stack</dt><dd>HF TRL / verl / AWS Nova Forge + strict TPR/FPR evals</dd>
-          <dt>Expected ROI</dt><dd>Double-digit hallucination drop, auditability &amp; compliance sign-off</dd>
-        </dl>
+    <div class="prose-wide">
+      <h2>2. Method Selection by Operational Regime</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Table 1. Mapping from task structure and supervision availability to post-training formulation.</caption>
+          <thead>
+            <tr>
+              <th>Workload Regime</th>
+              <th>Primary Formulation</th>
+              <th>Typical Scale</th>
+              <th>Supervision Signal</th>
+              <th>Documented Examples</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>High-volume single-turn classification, routing, or schema extraction</td>
+              <td>Off-policy sequence distillation + LoRA SFT</td>
+              <td>3.8B – 8B</td>
+              <td>Consensus teacher labels</td>
+              <td><a href="./case-studies/marketplace-slms-booking-checkr-uber/">Checkr, Booking.com, Uber</a></td>
+            </tr>
+            <tr>
+              <td>Long-context structured document generation (clinical, legal)</td>
+              <td>Iterative SFT (iSFT)</td>
+              <td>27B – 32B</td>
+              <td>Frontier rubric evaluation + targeted draft repair</td>
+              <td><a href="./case-studies/baseten-medical-scribes-isft/">Baseten Scribes</a>, <a href="./case-studies/harvey-legal-agent-suite/">Harvey Compaction</a></td>
+            </tr>
+            <tr>
+              <td>Multi-turn search, coding, or risk agents with objective outcomes</td>
+              <td>Multi-turn RLVR (GRPO / DAPO / GSPO)</td>
+              <td>8B – 32B, 35B-A3B</td>
+              <td>Execution tests, retrieval <em>F</em><sub>1</sub>, confirmed outcomes</td>
+              <td><a href="./case-studies/coinbase-fraud-agent/">Coinbase (9B)</a>, <a href="./case-studies/openpipe-art-e/">ART·E (14B)</a>, <a href="./case-studies/cognition-swe-grep/">SWE-grep</a></td>
+            </tr>
+            <tr>
+              <td>Compression of a high-capacity open-weight teacher into a fast student</td>
+              <td>On-Policy Distillation (OPD)</td>
+              <td>4B – 32B student</td>
+              <td>Per-token reverse KL against teacher log-probabilities</td>
+              <td><a href="./case-studies/thinking-machines-bridgewater-opd/">Thinking Machines × Bridgewater</a></td>
+            </tr>
+            <tr>
+              <td>High-frequency interactive product telemetry (&gt;10<sup>6</sup> events/day)</td>
+              <td>Continuous online policy-gradient RL</td>
+              <td>≤10B low-latency</td>
+              <td>Implicit accept / reject / silence events</td>
+              <td><a href="./case-studies/cursor-tab-online-rl/">Cursor Tab</a></td>
+            </tr>
+            <tr>
+              <td>Unlabeled enterprise query logs with automated verifiers</td>
+              <td>Test-time compute exploration + RL (TAO)</td>
+              <td>8B – 70B</td>
+              <td>SQL/code verifiers or calibrated reward model</td>
+              <td><a href="./case-studies/databricks-tao/">Databricks TAO</a></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <h2 class="section-heading">Audited Industry Scorecard (2024–2026)</h2>
-    <p class="section-sub">Every project found online and in the vault was audited for concrete business value before deep-diving. Click any project for full recipe, ROI analysis, and lessons learned.</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Project &amp; Vertical</th>
-            <th>Model Size</th>
-            <th>Post-Training Method</th>
-            <th>Verified Business &amp; Eval Impact</th>
-            <th>Business Value</th>
-          </tr>
-        </thead>
-        <tbody>${scorecardRows}</tbody>
-      </table>
+    <div class="prose">
+      <h2>3. Chapters</h2>
+      <ol>
+        <li><a href="./sft/"><strong>Supervised Fine-Tuning and Iterative Refinement</strong></a> — Generalization boundaries, Iterative SFT (iSFT), LoRA rank and learning-rate scaling, Base-model delta grafting (<code>Shadow-FT</code>), and hallucination amplification on unfamiliar facts.</li>
+        <li><a href="./rl/"><strong>Reinforcement Learning for Small and Midsize Models</strong></a> — Comparison of GRPO, DAPO, GSPO, CISPO, and GDPO; verifiable vs. rubric-based reward specification (<code>ProRubric</code>, <code>POW3R</code>, <code>Tournament-GRPO</code>, verbatim evidence schemas); and multi-turn numerical stability.</li>
+        <li><a href="./distillation/"><strong>Knowledge Distillation</strong></a> — Exposure bias in off-policy distillation, sample efficiency of On-Policy Distillation (OPD), context-conditioned self-distillation (<code>SDFT</code>, <code>SDPO</code>, <code>RGSD</code>), and empirical OOD limitations.</li>
+        <li><a href="./best-practices/"><strong>Experimental Protocol and Engineering Guidelines</strong></a> — Ten methodological practices covering harness state externalization, split hygiene, small-batch overfit smoke tests, token-ID preservation, and precision parity.</li>
+        <li><a href="./company-blueprint/"><strong>Industrial Post-Training Sequence</strong></a> — Seven-stage organizational decision process synthesized from Shwartz Ziv (2026), including pre-training verification via in-context skill extraction.</li>
+        <li><a href="./frameworks/"><strong>Frameworks and Compute Sizing</strong></a> — Comparative specification of 11 open-source and managed training stacks (<code>verl</code>, <code>SkyRL</code>, <code>PrimeRL</code>, <code>ART</code>, <code>Unsloth</code>, <code>TRL</code>, <code>Tinker</code>) and single- vs. multi-GPU memory profiles.</li>
+        <li><a href="./references/"><strong>Annotated Bibliography</strong></a> — Filterable index of ${references.length} primary research papers, engineering postmortems, and open-source repositories.</li>
+      </ol>
+    </div>
+
+    <div class="prose-wide">
+      <h2>4. Summary of Empirical Industrial Studies</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Table 2. Overview of ${caseStudies.length} documented post-training systems evaluated in this compendium. Select any study for full architectural specification, economic rationale, and methodological limitations.</caption>
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Domain</th>
+              <th>Scale</th>
+              <th>Method</th>
+              <th>Primary Reported Outcome</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody>${studyRows}</tbody>
+        </table>
+      </div>
     </div>
   `;
 
   return pageShell({
     title: 'Overview',
-    description: 'Practical industry post-training (SFT, RL, Distillation) for small and midsize models.',
+    description: 'Technical compendium on supervised fine-tuning, reinforcement learning, and distillation for small and midsize models.',
     activeNav: 'home',
     rootPrefix: './',
     bodyHtml
@@ -629,71 +520,75 @@ function buildHomePage() {
 }
 
 function buildCaseStudiesIndex() {
-  const cards = caseStudies
+  const rows = caseStudies
     .map((cs) => {
-      const searchBlob = `${cs.title} ${cs.company} ${cs.industry} ${cs.baseModel} ${cs.methodLabel} ${cs.summary} ${cs.keyLearnings.join(' ')}`;
-      return `
-      <a class="card card-link" href="./${cs.slug}/"
-         data-cs-card
-         data-methods="${escapeHtml(cs.methods.join(','))}"
-         data-tier="${escapeHtml(cs.businessValueTier)}"
-         data-size="${escapeHtml(cs.sizeCategory)}"
-         data-search="${escapeHtml(searchBlob)}">
-        <div class="badge-row">
-          ${tierBadge(cs.businessValueTier, cs.businessValueTag)}
-          ${methodBadges(cs.methods)}
-          <span class="badge">${escapeHtml(cs.modelSize)}</span>
-        </div>
-        <h3>${escapeHtml(cs.title)}</h3>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">${escapeHtml(cs.company)} · ${escapeHtml(cs.industry)} · ${escapeHtml(cs.year)}</p>
-        <p>${escapeHtml(cs.summary)}</p>
-        <div class="kpi-mini">
-          ${cs.headlineMetrics
-            .slice(0, 2)
-            .map((m) => `<div class="kpi-cell"><strong>${escapeHtml(m.value)}</strong><span>${escapeHtml(m.label)}</span></div>`)
-            .join('')}
-        </div>
-        <span style="font-size:0.83rem;font-weight:600;color:var(--accent)">Open business value &amp; technical deep dive →</span>
-      </a>`;
+      const searchBlob = `${cs.title} ${cs.company} ${cs.industry} ${cs.baseModel} ${cs.methodLabel} ${cs.summary}`;
+      return `<tr data-cs-row
+                  data-methods="${escapeHtml(cs.methods.join(','))}"
+                  data-tier="${escapeHtml(cs.businessValueTier)}"
+                  data-size="${escapeHtml(cs.sizeCategory)}"
+                  data-search="${escapeHtml(searchBlob)}">
+        <td>
+          <a href="./${cs.slug}/"><strong>${escapeHtml(cs.title)}</strong></a>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(cs.company)} · ${escapeHtml(cs.industry)} (${escapeHtml(cs.year)})</div>
+        </td>
+        <td><code>${escapeHtml(cs.modelSize)}</code></td>
+        <td>${escapeHtml(cs.methodLabel)}</td>
+        <td>${escapeHtml(cs.summary)}</td>
+        <td>${escapeHtml(cs.businessValueTier)}</td>
+      </tr>`;
     })
     .join('');
 
   const bodyHtml = `
     <div class="prose">
-      <h1>Audited Industry Case Studies</h1>
-      <p>Real-world small and midsize post-training projects discovered across 2024–2026 engineering reports and curated practitioner archives—screened for <strong>genuine business value</strong> (unit economics, latency, accuracy vs. frontier, compliance) and unpacked into transferable technical recipes.</p>
+      <h1>Empirical Industrial Case Studies</h1>
+      <p class="doc-subtitle">Structured analyses of ${caseStudies.length} small and midsize post-training deployments and controlled domain benchmarks (2024–2026), examining model scale, supervision design, quantitative outcomes, and methodological limitations.</p>
     </div>
 
-    <div class="filter-bar">
-      <input id="cs-search" class="filter-input" type="search" placeholder="Filter by company, model (Qwen3.5-9B, Qwen3-32B, Llama), industry, or method…">
-      <div class="filter-row">
-        <span class="filter-label">Method</span>
-        <button class="filter-pill active" data-cs-filter="method" data-val="all" type="button">All</button>
-        <button class="filter-pill" data-cs-filter="method" data-val="SFT" type="button">SFT / iSFT</button>
-        <button class="filter-pill" data-cs-filter="method" data-val="RL" type="button">RL</button>
-        <button class="filter-pill" data-cs-filter="method" data-val="Distillation" type="button">Distillation / OPD</button>
+    <div class="filter-controls">
+      <input id="cs-search" class="filter-search" type="search" placeholder="Filter by organization, base model, domain, or algorithm…">
+      <div class="filter-line">
+        <span class="filter-key">Method</span>
+        <button class="filter-btn active" data-cs-filter="method" data-val="all" type="button">All</button>
+        <button class="filter-btn" data-cs-filter="method" data-val="SFT" type="button">SFT / iSFT</button>
+        <button class="filter-btn" data-cs-filter="method" data-val="RL" type="button">RL</button>
+        <button class="filter-btn" data-cs-filter="method" data-val="Distillation" type="button">Distillation</button>
       </div>
-      <div class="filter-row">
-        <span class="filter-label">ROI Tier</span>
-        <button class="filter-pill active" data-cs-filter="tier" data-val="all" type="button">All Tiers</button>
-        <button class="filter-pill" data-cs-filter="tier" data-val="Tier 1" type="button">Tier 1 · Proven Production ROI</button>
-        <button class="filter-pill" data-cs-filter="tier" data-val="Tier 2" type="button">Tier 2 · Validated High-Potential</button>
+      <div class="filter-line">
+        <span class="filter-key">Evidence</span>
+        <button class="filter-btn active" data-cs-filter="tier" data-val="all" type="button">All</button>
+        <button class="filter-btn" data-cs-filter="tier" data-val="Deployment" type="button">Production Deployment</button>
+        <button class="filter-btn" data-cs-filter="tier" data-val="Benchmark" type="button">Controlled Evaluation</button>
       </div>
-      <div class="filter-row">
-        <span class="filter-label">Model Size</span>
-        <button class="filter-pill active" data-cs-filter="size" data-val="all" type="button">All Sizes</button>
-        <button class="filter-pill" data-cs-filter="size" data-val="Small (≤10B)" type="button">Small (≤10B)</button>
-        <button class="filter-pill" data-cs-filter="size" data-val="Midsize (11B–35B)" type="button">Midsize (11B–35B)</button>
+      <div class="filter-line">
+        <span class="filter-key">Scale</span>
+        <button class="filter-btn active" data-cs-filter="size" data-val="all" type="button">All</button>
+        <button class="filter-btn" data-cs-filter="size" data-val="Small (≤10B)" type="button">≤10B</button>
+        <button class="filter-btn" data-cs-filter="size" data-val="Midsize (11B–35B)" type="button">11B–35B</button>
       </div>
     </div>
 
-    <div id="cs-count" class="results-count"></div>
-    <div id="case-study-grid" class="card-grid-2">${cards}</div>
+    <div id="cs-count" class="count-note"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:23%">Study</th>
+            <th style="width:10%">Scale</th>
+            <th style="width:19%">Formulation</th>
+            <th>Summary of Findings</th>
+            <th style="width:11%">Evidence</th>
+          </tr>
+        </thead>
+        <tbody id="case-study-rows">${rows}</tbody>
+      </table>
+    </div>
   `;
 
   return pageShell({
-    title: 'Audited Industry Case Studies',
-    description: 'Real-world production post-training case studies audited for business value and technical learnings.',
+    title: 'Case Studies',
+    description: 'Empirical analyses of industrial post-training deployments and domain benchmarks.',
     activeNav: 'cases',
     rootPrefix: '../',
     bodyHtml
@@ -703,78 +598,63 @@ function buildCaseStudiesIndex() {
 function buildCaseStudyDetail(cs, idx) {
   const prev = idx > 0 ? caseStudies[idx - 1] : null;
   const next = idx < caseStudies.length - 1 ? caseStudies[idx + 1] : null;
+  const metricsInline = cs.headlineMetrics
+    .map((m) => `<strong>${escapeHtml(m.value)}</strong> (${escapeHtml(m.label)})`)
+    .join('; ');
 
   const bodyHtml = `
     <div class="breadcrumb"><a href="../../">Overview</a> / <a href="../">Case Studies</a> / ${escapeHtml(cs.title)}</div>
 
-    <div class="prose">
-      <div class="badge-row">
-        ${tierBadge(cs.businessValueTier, cs.businessValueTag)}
-        ${methodBadges(cs.methods)}
-        <span class="badge">${escapeHtml(cs.modelSize)}</span>
-        <span class="badge">${escapeHtml(cs.industry)}</span>
-        <span class="badge">${escapeHtml(cs.year)}</span>
-      </div>
+    <article class="prose">
       <h1>${escapeHtml(cs.title)}</h1>
-      <p style="font-size:1.04rem;color:var(--text);">${escapeHtml(cs.summary)}</p>
-    </div>
+      <p class="doc-meta">${escapeHtml(cs.company)} · ${escapeHtml(cs.industry)} · ${escapeHtml(cs.year)} · Scale: ${escapeHtml(cs.modelSize)} · Evidence: ${escapeHtml(cs.businessValueTier)} (${escapeHtml(cs.businessValueTag)})</p>
 
-    <div class="kpi-strip">
-      ${cs.headlineMetrics
-        .map((m) => `<div class="stat-box"><div class="stat-val">${escapeHtml(m.value)}</div><div class="stat-lbl">${escapeHtml(m.label)}</div></div>`)
-        .join('')}
-    </div>
+      <div class="abstract">
+        <div class="abstract-label">Summary</div>
+        <p>${escapeHtml(cs.summary)}</p>
+      </div>
 
-    <div class="callout callout-field">
-      <p><strong>Business Value Audit (${escapeHtml(cs.businessValueTier)} — ${escapeHtml(cs.businessValueTag)}):</strong> ${escapeHtml(cs.businessValueAnalysis)}</p>
-    </div>
-
-    <div class="prose">
-      <h2>Operational Problem Context</h2>
-      <p>${escapeHtml(cs.problemContext)}</p>
-
-      <h2>Technical Post-Training Recipe</h2>
+      <h2>1. System and Training Specification</h2>
       <div class="table-wrap">
         <table>
           <tbody>
-            <tr><th style="width:210px;">Base Model &amp; Serving</th><td>${escapeHtml(cs.baseModel)} — ${escapeHtml(cs.technicalRecipe.architecture)}</td></tr>
-            <tr><th>Post-Training Method</th><td><strong>${escapeHtml(cs.methodLabel)}</strong></td></tr>
-            <tr><th>Training Stack</th><td>${escapeHtml(cs.technicalRecipe.trainingStack)}</td></tr>
-            <tr><th>Data &amp; Harness</th><td>${escapeHtml(cs.technicalRecipe.dataAndHarness)}</td></tr>
-            <tr><th>Reward / Supervision</th><td>${escapeHtml(cs.technicalRecipe.rewardDesign)}</td></tr>
+            <tr><th style="width:200px">Base Checkpoint &amp; Serving</th><td>${escapeHtml(cs.baseModel)} — ${escapeHtml(cs.technicalRecipe.architecture)}</td></tr>
+            <tr><th>Optimization Formulation</th><td>${escapeHtml(cs.methodLabel)} (${escapeHtml(cs.methods.join(', '))})</td></tr>
+            <tr><th>Training Infrastructure</th><td>${escapeHtml(cs.technicalRecipe.trainingStack)}</td></tr>
+            <tr><th>Dataset &amp; Harness</th><td>${escapeHtml(cs.technicalRecipe.dataAndHarness)}</td></tr>
+            <tr><th>Supervision / Reward</th><td>${escapeHtml(cs.technicalRecipe.rewardDesign)}</td></tr>
+            <tr><th>Key Reported Metrics</th><td>${metricsInline}</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h2>Quantified Results</h2>
+      <h2>2. Operational Setting</h2>
+      <p>${escapeHtml(cs.problemContext)}</p>
+
+      <h2>3. Economic and Deployment Rationale</h2>
+      <p>${escapeHtml(cs.businessValueAnalysis)}</p>
+
+      <h2>4. Quantitative Findings</h2>
       <ul>${cs.quantifiedResults.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul>
-    </div>
 
-    <div class="detail-grid">
-      <div class="detail-box" style="border-top:3px solid var(--emerald);">
-        <h3>What We Can Learn &amp; Reuse</h3>
-        <ul>${cs.keyLearnings.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>
-      </div>
-      <div class="detail-box" style="border-top:3px solid var(--rose);">
-        <h3>Watchouts &amp; Constraints</h3>
-        <ul>${cs.watchouts.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
-      </div>
-    </div>
+      <h2>5. Methodological Takeaways</h2>
+      <ul>${cs.keyLearnings.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>
 
-    <div class="prose">
-      <h2>Primary Sources</h2>
-      <ul>
+      <h2>6. Limitations and Confounds</h2>
+      <ul>${cs.watchouts.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
+
+      <h2>References</h2>
+      <ol>
         ${cs.links
           .map((l) => `<li><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a></li>`)
           .join('')}
-      </ul>
-      <p style="font-size:0.82rem;color:var(--text-muted);">Discovered via: ${escapeHtml(cs.sourceOrigin.join(' · '))}</p>
-    </div>
+      </ol>
+    </article>
 
-    <div style="display:flex;justify-content:space-between;gap:12px;margin-top:32px;flex-wrap:wrap;">
-      ${prev ? `<a class="btn btn-secondary" href="../${prev.slug}/">← ${escapeHtml(prev.title)}</a>` : '<span></span>'}
-      ${next ? `<a class="btn btn-secondary" href="../${next.slug}/">${escapeHtml(next.title)} →</a>` : ''}
-    </div>
+    <nav class="pager" aria-label="Case study pagination">
+      ${prev ? `<a href="../${prev.slug}/">← ${escapeHtml(prev.title)}</a>` : '<span></span>'}
+      ${next ? `<a href="../${next.slug}/">${escapeHtml(next.title)} →</a>` : ''}
+    </nav>
   `;
 
   return pageShell({
@@ -786,34 +666,33 @@ function buildCaseStudyDetail(cs, idx) {
   });
 }
 
-function buildMarkdownPage({ mdFile, activeNav, title, description, extraBlockAfterFirstH2 = '' }) {
+function buildMarkdownPage({ mdFile, activeNav, title, description }) {
   const raw = fs.readFileSync(path.join(ROOT, 'docs', mdFile), 'utf8');
-  let { html, toc } = renderMarkdown(raw);
-  if (extraBlockAfterFirstH2) {
-    html = html.replace(/<h2 /, `${extraBlockAfterFirstH2}\n<h2 `);
-  }
-  const tocHtml = toc.length
-    ? `<aside class="toc" aria-label="On this page">
-         <div class="toc-title">On this page</div>
-         <ul>${toc
-           .map((t) => `<li class="toc-h${t.level}"><a href="#${t.id}">${escapeHtml(t.text)}</a></li>`)
-           .join('')}</ul>
-       </aside>`
+  const { html, toc } = renderMarkdown(raw);
+
+  const tocBlock = toc.length
+    ? `<nav class="inline-toc" aria-label="Table of contents">
+         <div class="inline-toc-label">Contents</div>
+         <ol>${toc.map((t) => `<li><a href="#${t.id}">${escapeHtml(t.text.replace(/^\d+\.\s*/, ''))}</a></li>`).join('')}</ol>
+       </nav>`
     : '';
 
-  const bodyHtml = `
-    <div class="doc-grid">
-      <article class="prose">${html}</article>
-      ${tocHtml}
-    </div>
-  `;
+  // Insert inline TOC after the first <hr> (or after first paragraph if no <hr>)
+  let finalHtml = html;
+  if (tocBlock) {
+    if (finalHtml.includes('<hr>')) {
+      finalHtml = finalHtml.replace('<hr>', tocBlock);
+    } else {
+      finalHtml = `${tocBlock}\n${finalHtml}`;
+    }
+  }
 
   return pageShell({
     title,
     description,
     activeNav,
     rootPrefix: '../',
-    bodyHtml
+    bodyHtml: `<article class="prose">${finalHtml}</article>`
   });
 }
 
@@ -821,8 +700,8 @@ function buildFrameworksPage() {
   const fwRows = frameworksData.frameworks
     .map(
       (fw) => `<tr>
-        <td><a href="${escapeHtml(fw.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(fw.name)}</strong></a><br><a href="${escapeHtml(fw.docsUrl)}" target="_blank" rel="noopener" style="font-size:0.77rem;">Docs / Recipe ↗</a></td>
-        <td>${escapeHtml(fw.bestFor)}<br><span style="font-size:0.78rem;color:var(--accent);"><strong>Sweet spot:</strong> ${escapeHtml(fw.sweetSpot)}</span></td>
+        <td><a href="${escapeHtml(fw.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(fw.name)}</strong></a><br><a href="${escapeHtml(fw.docsUrl)}" target="_blank" rel="noopener" style="font-size:0.74rem;color:var(--text-muted)">Documentation</a></td>
+        <td>${escapeHtml(fw.bestFor)}</td>
         <td><code>${escapeHtml(fw.rlAlgorithms)}</code></td>
         <td>${escapeHtml(fw.distillation)}</td>
         <td>${escapeHtml(fw.multiStep)}</td>
@@ -834,7 +713,7 @@ function buildFrameworksPage() {
   const hwRows = frameworksData.hardwareSizing
     .map(
       (hw) => `<tr>
-        <td><strong>${escapeHtml(hw.tier)}</strong><br><span style="font-size:0.79rem;color:var(--text-muted)">${escapeHtml(hw.models)}</span></td>
+        <td><strong>${escapeHtml(hw.tier)}</strong><br><span style="font-size:0.75rem;color:var(--text-muted)">${escapeHtml(hw.models)}</span></td>
         <td>${escapeHtml(hw.sftHardware)}</td>
         <td>${escapeHtml(hw.rlHardware)}</td>
         <td>${escapeHtml(hw.servingProfile)}</td>
@@ -845,56 +724,52 @@ function buildFrameworksPage() {
 
   const bodyHtml = `
     <div class="prose">
-      <h1>Post-Training Frameworks, Compute &amp; Hardware Stack</h1>
-      <p>Do not vibe-code custom RL trainers from scratch. Below is the battle-tested 2026 tooling landscape for SFT, multi-turn RL, rubric judges, and On-Policy Distillation—audited from live production deployments and practitioner benchmarks.</p>
+      <h1>Post-Training Frameworks and Compute Profiles</h1>
+      <p class="doc-subtitle">Comparative specification of open-source and managed post-training libraries supporting multi-turn rollouts, rubric evaluation, and on-policy distillation, alongside GPU memory sizing for 1.5B–35B models.</p>
+    </div>
 
-      <h2>1. Framework Comparison Matrix</h2>
+    <div class="prose-wide">
+      <h2>1. Framework Specification</h2>
       <div class="table-wrap">
         <table>
+          <caption>Table 1. Capabilities and hardware profiles of contemporary LLM post-training frameworks.</caption>
           <thead>
             <tr>
               <th>Framework</th>
-              <th>Best For &amp; Sweet Spot</th>
-              <th>RL Algorithms</th>
-              <th>Distillation / OPD</th>
-              <th>Multi-Step Agents</th>
-              <th>Hardware &amp; Deployment</th>
+              <th>Primary Design Scope</th>
+              <th>Policy Estimators</th>
+              <th>Distillation</th>
+              <th>Multi-Turn Support</th>
+              <th>Hardware &amp; Execution</th>
             </tr>
           </thead>
           <tbody>${fwRows}</tbody>
         </table>
       </div>
 
-      <h2>2. Practical Hardware &amp; Budget Sizing (4B–35B)</h2>
-      <p>VRAM requirements depend heavily on sequence length, LoRA vs. full-parameter updates, FP8 kernels, and parallel rollout group size. Memory-saving kernels such as <strong>Unsloth's chunked GRPO kernels</strong> and <strong>Liger-Kernel</strong> (<code>use_liger_kernel=True</code> in TRL) compute logits and loss block-by-block so full vocabulary logits never materialize in backward VRAM.</p>
+      <h2>2. Hardware and Memory Sizing by Parameter Scale</h2>
+      <p class="prose">Memory consumption scales with sequence length, adapter vs. full-parameter optimizer states, rollout group size <em>G</em>, and kernel fusion. Blockwise logit-and-loss kernels—such as Unsloth's chunked GRPO kernels and Liger-Kernel (<code>use_liger_kernel=True</code> in TRL)—avoid materializing full batch × sequence × vocabulary logit tensors during backpropagation.</p>
       <div class="table-wrap">
         <table>
+          <caption>Table 2. Representative GPU configurations and experimental compute budgets across model tiers.</caption>
           <thead>
             <tr>
-              <th>Model Tier</th>
-              <th>SFT / iSFT Hardware</th>
-              <th>RL / OPD Hardware</th>
-              <th>Production Serving Profile</th>
-              <th>Typical Run Budget</th>
+              <th>Parameter Tier</th>
+              <th>SFT / iSFT Configuration</th>
+              <th>RL / OPD Configuration</th>
+              <th>Inference Characteristics</th>
+              <th>Typical Compute Cost</th>
             </tr>
           </thead>
           <tbody>${hwRows}</tbody>
         </table>
       </div>
-
-      <h2>3. Quick Stack Selection Guide</h2>
-      <ul>
-        <li><strong>Single GPU (1× RTX 4090 / RTX PRO 6000 / 1× H100):</strong> Use <strong>Unsloth</strong> for SFT &amp; 1.5B–9B GRPO, or <strong>OpenPipe ART</strong> for multi-turn agentic GRPO (proven by ART·E 14B in &lt;24h on 1× H100).</li>
-        <li><strong>Multi-GPU / Cluster Production RL &amp; OPD:</strong> Use <strong>verl</strong>, <strong>SkyRL</strong> (Coinbase &amp; Mercor), or <strong>PrimeRL + Verifiers</strong> (async FSDP2 + vLLM).</li>
-        <li><strong>Zero GPU Ops / API-First Training:</strong> Use <strong>Tinker (Thinking Machines)</strong> for full algorithmic control over SFT, RL, Rubric Grading, and OPD from a local Python client.</li>
-        <li><strong>Existing Production Agent Frameworks:</strong> Use <strong>Microsoft Agent Lightning</strong> to bolt RL onto existing LangChain/AutoGen/ServiceNow workflows without rewriting business logic.</li>
-      </ul>
     </div>
   `;
 
   return pageShell({
     title: 'Frameworks & Compute',
-    description: 'Comparison of 2026 post-training frameworks (verl, SkyRL, PrimeRL, ART, Unsloth, TRL, Tinker) and GPU sizing.',
+    description: 'Comparative specification of post-training frameworks and GPU memory sizing.',
     activeNav: 'frameworks',
     rootPrefix: '../',
     bodyHtml
@@ -903,79 +778,57 @@ function buildFrameworksPage() {
 
 function buildReferencesPage() {
   const pillars = ['Industry Case Study', 'SFT', 'RL', 'Distillation', 'Evals & Rewards', 'Frameworks & Infra', 'Continual Learning & Memory'];
-  const sources = ['Web / X', 'Obsidian Vault', 'Apple Notes'];
-  const types = ['Blog / Case Study', 'Paper', 'Repo / Tool', 'Video / Talk'];
+  const types = ['Paper', 'Blog / Case Study', 'Repo / Tool', 'Video / Talk'];
 
   const refItemsHtml = references
     .map((r) => {
-      const pillarCls =
-        r.pillar === 'SFT'
-          ? 'badge-sft'
-          : r.pillar === 'RL'
-          ? 'badge-rl'
-          : r.pillar === 'Distillation'
-          ? 'badge-distill'
-          : r.pillar === 'Industry Case Study'
-          ? 'badge-tier1'
-          : '';
-      const searchBlob = `${r.title} ${r.pillar} ${r.type} ${r.source} ${r.year} ${r.takeaway}`;
-      const internalLink = r.internalUrl
-        ? `<a class="badge badge-tier1" href="../${escapeHtml(r.internalUrl)}" style="text-decoration:none;">Read dedicated page →</a>`
+      const searchBlob = `${r.title} ${r.pillar} ${r.type} ${r.year} ${r.takeaway}`;
+      const internalNote = r.internalUrl
+        ? ` · <a href="../${escapeHtml(r.internalUrl)}">Compendium note →</a>`
         : '';
       return `
-      <div class="ref-item"
-           data-ref-item
-           data-pillar="${escapeHtml(r.pillar)}"
-           data-source="${escapeHtml(r.source)}"
-           data-type="${escapeHtml(r.type)}"
-           data-search="${escapeHtml(searchBlob)}">
-        <div class="ref-item-head">
-          <a class="ref-title" href="${escapeHtml(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.title)} ↗</a>
-          <span class="badge">${r.year}</span>
+      <li class="bib-entry"
+          data-ref-item
+          data-pillar="${escapeHtml(r.pillar)}"
+          data-type="${escapeHtml(r.type)}"
+          data-search="${escapeHtml(searchBlob)}">
+        <div class="bib-head">
+          <a class="bib-title" href="${escapeHtml(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a>
+          <span class="bib-meta">${r.year} · ${escapeHtml(r.type)}</span>
         </div>
-        <p class="ref-takeaway">${escapeHtml(r.takeaway)}</p>
-        <div class="badge-row" style="margin:2px 0 0;">
-          <span class="badge ${pillarCls}">${escapeHtml(r.pillar)}</span>
-          <span class="badge">${escapeHtml(r.type)}</span>
-          <span class="badge">${escapeHtml(r.source)}</span>
-          ${internalLink}
-        </div>
-      </div>`;
+        <p class="bib-note">${escapeHtml(r.takeaway)}</p>
+        <div class="bib-tags">${escapeHtml(r.pillar)}${internalNote}</div>
+      </li>`;
     })
     .join('');
 
   const bodyHtml = `
     <div class="prose">
-      <h1>Curated Reference Library</h1>
-      <p>The highest-signal papers, production engineering writeups, open-source repos, and talks synthesized from curated research notes and live 2024–2026 industry publications.</p>
+      <h1>Annotated Bibliography</h1>
+      <p class="doc-subtitle">Primary research literature, industrial engineering reports, and open-source software referenced across this compendium (${references.length} entries, 2023–2026).</p>
     </div>
 
-    <div class="filter-bar">
-      <input id="ref-search" class="filter-input" type="search" placeholder="Search papers, authors, algorithms (GDPO, GSPO, OPD, iSFT, Harness-1, Coinbase)…">
-      <div class="filter-row">
-        <span class="filter-label">Pillar</span>
-        <button class="filter-pill active" data-ref-filter="pillar" data-val="all" type="button">All</button>
-        ${pillars.map((p) => `<button class="filter-pill" data-ref-filter="pillar" data-val="${escapeHtml(p)}" type="button">${escapeHtml(p)}</button>`).join('')}
+    <div class="filter-controls">
+      <input id="ref-search" class="filter-search" type="search" placeholder="Search by title, topic, model, or method (e.g., GRPO, ProRubric, OPD, LoRA)…">
+      <div class="filter-line">
+        <span class="filter-key">Topic</span>
+        <button class="filter-btn active" data-ref-filter="pillar" data-val="all" type="button">All</button>
+        ${pillars.map((p) => `<button class="filter-btn" data-ref-filter="pillar" data-val="${escapeHtml(p)}" type="button">${escapeHtml(p)}</button>`).join('')}
       </div>
-      <div class="filter-row">
-        <span class="filter-label">Type</span>
-        <button class="filter-pill active" data-ref-filter="type" data-val="all" type="button">All Types</button>
-        ${types.map((t) => `<button class="filter-pill" data-ref-filter="type" data-val="${escapeHtml(t)}" type="button">${escapeHtml(t)}</button>`).join('')}
-      </div>
-      <div class="filter-row">
-        <span class="filter-label">Origin</span>
-        <button class="filter-pill active" data-ref-filter="source" data-val="all" type="button">All Origins</button>
-        ${sources.map((s) => `<button class="filter-pill" data-ref-filter="source" data-val="${escapeHtml(s)}" type="button">${escapeHtml(s)}</button>`).join('')}
+      <div class="filter-line">
+        <span class="filter-key">Format</span>
+        <button class="filter-btn active" data-ref-filter="type" data-val="all" type="button">All</button>
+        ${types.map((t) => `<button class="filter-btn" data-ref-filter="type" data-val="${escapeHtml(t)}" type="button">${escapeHtml(t)}</button>`).join('')}
       </div>
     </div>
 
-    <div id="ref-count" class="results-count"></div>
-    <div id="ref-list" class="ref-list">${refItemsHtml}</div>
+    <div id="ref-count" class="count-note"></div>
+    <ul id="ref-list" class="bib-list">${refItemsHtml}</ul>
   `;
 
   return pageShell({
-    title: 'Curated Reference Library',
-    description: 'Searchable archive of post-training papers, industry case studies, repos, and talks from Obsidian, Apple Notes, and web research.',
+    title: 'Bibliography',
+    description: 'Annotated bibliography of post-training research papers, engineering reports, and repositories.',
     activeNav: 'refs',
     rootPrefix: '../',
     bodyHtml
@@ -984,14 +837,14 @@ function buildReferencesPage() {
 
 function buildSearchIndex() {
   const index = [
-    { title: 'Executive Overview & Interactive Method Selector', category: 'Guide', url: '', excerpt: 'When to use SFT, iSFT, GRPO, OPD, Online RL + full industry ROI scorecard.', external: false },
-    { title: 'Supervised Fine-Tuning (SFT) & Iterative SFT', category: 'Core Pillar', url: 'sft/', excerpt: 'LoRA without regret, Baseten iSFT, Shadow-FT, Base+merge, abstention & avoiding hallucination tax.', external: false },
-    { title: 'Reinforcement Learning (GRPO, DAPO, GSPO, GDPO, Online RL)', category: 'Core Pillar', url: 'rl/', excerpt: 'RLVR, Rubrics-as-Rewards, Rubric Dropout, logprob mismatch, token-in-token-out, multi-reward balance.', external: false },
-    { title: 'Distillation (Off-Policy KD, On-Policy Distillation / OPD, Self-Distillation)', category: 'Core Pillar', url: 'distillation/', excerpt: 'OPD 9x-30x compute savings, PivotOPD, SDFT/SDPO, late-2026 self-distillation OOD caveats.', external: false },
-    { title: 'Frameworks, Compute & Hardware Sizing', category: 'Stack', url: 'frameworks/', excerpt: 'verl, SkyRL, PrimeRL, OpenPipe ART, Unsloth, HF TRL, Tinker, Agent Lightning, GPU budgets.', external: false },
-    { title: 'Production Post-Training Playbook (10 Rules)', category: 'Best Practices', url: 'best-practices/', excerpt: 'Harness first, overfit smoke test, token-in-token-out, judge variance, FP8 controls, sampling bounds.', external: false },
-    { title: 'Inside-a-Company Post-Training Blueprint (Ravid Shwartz Ziv)', category: 'Strategy & Blueprint', url: 'company-blueprint/', excerpt: '7-stage enterprise sequence: why bother, evals first, real traces, zero-training skill-distillation pre-check, ~30B 1-GPU LoRA, Skills → SFT → Distillation → RL.', external: false },
-    { title: 'Curated Reference Library', category: 'Archive', url: 'references/', excerpt: 'Filterable archive of curated post-training papers, industry case studies, repos, and talks.', external: false }
+    { title: 'Overview — Post-Training of Small and Midsize Models', category: 'Compendium', url: '', excerpt: 'Abstract, economic motivation, regime mapping, and summary of 15 empirical studies.', external: false },
+    { title: 'Supervised Fine-Tuning and Iterative Refinement', category: 'Chapter', url: 'sft/', excerpt: 'Generalization properties, Iterative SFT (iSFT), LoRA scaling, Shadow-FT, and hallucination amplification.', external: false },
+    { title: 'Reinforcement Learning for Small and Midsize Models', category: 'Chapter', url: 'rl/', excerpt: 'GRPO, DAPO, GSPO, CISPO, GDPO; RLVR vs. rubric rewards (ProRubric, POW3R, Tournament-GRPO); numerical stability.', external: false },
+    { title: 'Knowledge Distillation: Off-Policy, On-Policy, and Self-Distillation', category: 'Chapter', url: 'distillation/', excerpt: 'Exposure bias, On-Policy Distillation (OPD), SDFT/SDPO/RGSD, and late-2026 OOD limitations.', external: false },
+    { title: 'Experimental Protocol and Engineering Guidelines', category: 'Chapter', url: 'best-practices/', excerpt: 'Harness externalization, evaluation hygiene, overfit smoke tests, token-ID preservation, and precision parity.', external: false },
+    { title: 'Industrial Post-Training Sequence (Shwartz Ziv, 2026)', category: 'Chapter', url: 'company-blueprint/', excerpt: 'Seven-stage organizational sequence, pre-training in-context skill verification, and ~30B single-GPU LoRA baseline.', external: false },
+    { title: 'Post-Training Frameworks and Compute Profiles', category: 'Reference', url: 'frameworks/', excerpt: 'verl, SkyRL, PrimeRL, OpenPipe ART, Unsloth, HF TRL, Tinker, Rocket, and GPU memory tables.', external: false },
+    { title: 'Annotated Bibliography', category: 'Reference', url: 'references/', excerpt: 'Searchable bibliography of papers, engineering reports, and repositories.', external: false }
   ];
 
   for (const cs of caseStudies) {
@@ -1009,7 +862,7 @@ function buildSearchIndex() {
       title: fw.name,
       category: 'Framework',
       url: 'frameworks/',
-      excerpt: `${fw.rlAlgorithms} · ${fw.bestFor}`,
+      excerpt: `${fw.rlAlgorithms} — ${fw.bestFor}`,
       external: false
     });
   }
@@ -1017,7 +870,7 @@ function buildSearchIndex() {
   for (const ref of references) {
     index.push({
       title: ref.title,
-      category: `${ref.pillar} · ${ref.year}`,
+      category: `${ref.pillar} (${ref.year})`,
       url: ref.url,
       excerpt: ref.takeaway,
       external: true
@@ -1033,15 +886,12 @@ function writeOut(relPath, content) {
   fs.writeFileSync(full, content, 'utf8');
 }
 
-// Clean & rebuild public/
 fs.rmSync(PUBLIC_DIR, { recursive: true, force: true });
 fs.mkdirSync(path.join(PUBLIC_DIR, 'assets'), { recursive: true });
 
-// Copy static assets
 fs.copyFileSync(path.join(ROOT, 'src/styles.css'), path.join(PUBLIC_DIR, 'assets/styles.css'));
 fs.copyFileSync(path.join(ROOT, 'src/app.js'), path.join(PUBLIC_DIR, 'assets/app.js'));
 
-// Render pages
 writeOut('index.html', buildHomePage());
 writeOut('case-studies/index.html', buildCaseStudiesIndex());
 caseStudies.forEach((cs, idx) => {
@@ -1053,8 +903,8 @@ writeOut(
   buildMarkdownPage({
     mdFile: 'sft.md',
     activeNav: 'sft',
-    title: 'SFT & Iterative SFT',
-    description: 'Supervised Fine-Tuning, LoRA, iSFT, Shadow-FT, and hallucination control for small/midsize industry models.'
+    title: 'Supervised Fine-Tuning and Iterative Refinement',
+    description: 'Supervised fine-tuning, Iterative SFT, LoRA scaling, Base+merge grafting, and hallucination control.'
   })
 );
 writeOut(
@@ -1063,7 +913,7 @@ writeOut(
     mdFile: 'rl.md',
     activeNav: 'rl',
     title: 'Reinforcement Learning',
-    description: 'RLVR, GRPO, DAPO, GSPO, GDPO, Rubric Rewards, and multi-turn engineering stability.'
+    description: 'Policy-gradient estimators (GRPO, DAPO, GSPO, GDPO), rubric verification, and multi-turn numerical stability.'
   })
 );
 writeOut(
@@ -1071,9 +921,8 @@ writeOut(
   buildMarkdownPage({
     mdFile: 'distillation.md',
     activeNav: 'distill',
-    title: 'Distillation & On-Policy Distillation',
-    description: 'Off-policy KD, On-Policy Distillation (OPD), Self-Distillation, and late-2026 empirical caveats.',
-    extraBlockAfterFirstH2: distillationSvg()
+    title: 'Knowledge Distillation',
+    description: 'Off-policy sequence distillation, On-Policy Distillation (OPD), context-conditioned self-distillation, and OOD caveats.'
   })
 );
 writeOut(
@@ -1081,8 +930,8 @@ writeOut(
   buildMarkdownPage({
     mdFile: 'best-practices.md',
     activeNav: 'playbook',
-    title: 'Production Post-Training Playbook',
-    description: '10 field-tested rules for post-training small and midsize models in industry.'
+    title: 'Experimental Protocol and Guidelines',
+    description: 'Ten methodological guidelines for industrial post-training of small and midsize models.'
   })
 );
 writeOut(
@@ -1090,8 +939,8 @@ writeOut(
   buildMarkdownPage({
     mdFile: 'company-blueprint.md',
     activeNav: 'blueprint',
-    title: 'Inside-a-Company Post-Training Blueprint (Ravid Shwartz Ziv)',
-    description: 'Step-by-step enterprise post-training sequence from Ravid Shwartz Ziv: business case, evals, real traces, skill distillation pre-check, 30B LoRA, and method escalation.'
+    title: 'Industrial Post-Training Sequence (Shwartz Ziv, 2026)',
+    description: 'Seven-stage sequence for organizational model adaptation after Ravid Shwartz Ziv (2026).'
   })
 );
 
@@ -1100,20 +949,19 @@ writeOut('references/index.html', buildReferencesPage());
 writeOut('search-index.json', JSON.stringify(buildSearchIndex(), null, 2));
 writeOut('.nojekyll', '');
 
-// Clean 404 page for GitLab Pages
 writeOut(
   '404.html',
   pageShell({
-    title: 'Page Not Found',
-    description: '404 Not Found',
+    title: '404 Not Found',
+    description: 'Page not found',
     activeNav: '',
     rootPrefix: './',
-    bodyHtml: `<div class="prose"><h1>404 — Page Not Found</h1><p>Return to the <a href="./">Industrial Post-Training Hub overview</a> or press <code>/</code> to search.</p></div>`
+    bodyHtml: `<div class="prose"><h1>404 — Page Not Found</h1><p>Return to the <a href="./">compendium overview</a> or press <code>/</code> to search.</p></div>`
   })
 );
 
-console.log(`Built GitLab Pages site to ${PUBLIC_DIR}:`);
-console.log(`  - ${caseStudies.length} audited case study deep-dive pages`);
-console.log(`  - 4 deep-dive Markdown chapters (SFT, RL, Distillation, Best Practices)`);
-console.log(`  - Frameworks & Compute matrix (${frameworksData.frameworks.length} frameworks)`);
-console.log(`  - Curated Reference Library (${references.length} links)`);
+console.log(`Built minimalist scientific compendium to ${PUBLIC_DIR}:`);
+console.log(`  - ${caseStudies.length} technical case notes`);
+console.log(`  - 5 chapters (SFT, RL, Distillation, Protocol, Industrial Sequence)`);
+console.log(`  - Frameworks specification (${frameworksData.frameworks.length} frameworks)`);
+console.log(`  - Annotated bibliography (${references.length} entries)`);

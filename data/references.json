@@ -1,5 +1,41 @@
 [
   {
+    "title": "Reward Hacking in Rubric-Based Reinforcement Learning",
+    "url": "https://arxiv.org/abs/2605.12474",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Web / X",
+    "takeaway": "Separates verifier false positives (implicit-as-explicit credit, compound criteria) from rubric-design flaws using cross-family reference judge panels."
+  },
+  {
+    "title": "POW3R: Not Every Rubric Teaches Equally — Policy-Aware Rubric Rewards for RLVR",
+    "url": "https://arxiv.org/abs/2605.20164",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Web / X",
+    "takeaway": "Dynamically weights rubric criteria by empirical rollout contrast rather than static weights, accelerating convergence by 2.5x–4x."
+  },
+  {
+    "title": "Tournament-GRPO: Group-Wise Tournament Rewards for RL in Open-Ended Long-Form Generation",
+    "url": "https://arxiv.org/abs/2605.26958",
+    "year": 2026,
+    "pillar": "RL",
+    "type": "Paper",
+    "source": "Web / X",
+    "takeaway": "Converts rubric-guided judgments into multi-round relative tournaments among same-prompt rollouts, avoiding pointwise score calibration drift."
+  },
+  {
+    "title": "ProRubric: Mitigating Reward Hacking in Rubric-Based RL via Protocol-Level Rubrics",
+    "url": "https://arxiv.org/abs/2609.38847",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Paper",
+    "source": "Web / X",
+    "takeaway": "Replaces additive weighted sums with conjunctive (AND) protocol-level gates so verbosity on easy items cannot compensate for missing core prerequisites."
+  },
+  {
     "title": "Ravid Shwartz Ziv (@ziv_ravid): Inside-a-Company Post-Training Thread (Why, Eval, Traces, Skill Pre-Check, 30B LoRA)",
     "url": "https://x.com/ziv_ravid/status/2123537747348791582",
     "internalUrl": "company-blueprint/",
@@ -16,7 +52,7 @@
     "pillar": "Industry Case Study",
     "type": "Blog / Case Study",
     "source": "Obsidian Vault",
-    "takeaway": "9B RL-trained risk agent beat Claude Opus 4.5 (+9.6% F1, -55% latency) on a <$100 single-GPU run."
+    "takeaway": "9B RL-trained risk agent outperformed Claude Opus 4.5 (+9.6% F1, -55% latency) on a <$100 single-GPU run."
   },
   {
     "title": "Improving Cursor Tab with Online RL",
@@ -97,7 +133,7 @@
     "pillar": "Industry Case Study",
     "type": "Blog / Case Study",
     "source": "Obsidian Vault",
-    "takeaway": "Single-H100 GRPO run beat OpenAI o3 at 64× lower cost and 5× faster latency; full open-source blueprint."
+    "takeaway": "Single-H100 GRPO run outperformed OpenAI o3 at 64× lower cost and 5× faster latency; full open-source blueprint."
   },
   {
     "title": "Paper Instruments: Ultramarine 1 Flash — Scaling Non-Verifiable RL",
@@ -115,7 +151,7 @@
     "pillar": "Industry Case Study",
     "type": "Blog / Case Study",
     "source": "Obsidian Vault",
-    "takeaway": "Unlabeled production queries + test-time candidate generation + DBRM RL beat human-labeled SFT with 0× extra serving latency."
+    "takeaway": "Unlabeled production queries + test-time candidate generation + DBRM RL outperformed human-labeled SFT with 0× extra serving latency."
   },
   {
     "title": "Thinking Machines × Bridgewater: Learning to Replicate Expert Judgment in Financial Tasks",
@@ -178,7 +214,7 @@
     "pillar": "Industry Case Study",
     "type": "Paper",
     "source": "Obsidian Vault",
-    "takeaway": "Offloading bookkeeping to a stateful harness let a 20B model (899 SFT traces + RL) beat GPT-5.4 (0.730 vs 0.709 recall)."
+    "takeaway": "Offloading bookkeeping to a stateful harness let a 20B model (899 SFT traces + RL) outperformed GPT-5.4 (0.730 vs 0.709 recall)."
   },
   {
     "title": "Small Language Models are the Future of Agentic AI (NVIDIA Research)",
@@ -196,7 +232,7 @@
     "pillar": "RL",
     "type": "Paper",
     "source": "Obsidian Vault",
-    "takeaway": "Nemotron-Orchestrator-8B beat GPT-5 on HLE (37.1%) at 2.5× efficiency and ~30% monetary cost via GRPO routing."
+    "takeaway": "Nemotron-Orchestrator-8B outperformed GPT-5 on HLE (37.1%) at 2.5× efficiency and ~30% monetary cost via GRPO routing."
   },
   {
     "title": "Amazon Nova Forge: Build Your Own Frontier Models (Open Training)",
@@ -259,7 +295,7 @@
     "pillar": "SFT",
     "type": "Paper",
     "source": "Obsidian Vault",
-    "takeaway": "Many fancy LoRA variants only beat vanilla LoRA because baseline LR sweeps were under-tuned—sweep LR first!"
+    "takeaway": "Many fancy LoRA variants only beat vanilla LoRA because baseline LR sweeps were under-tuned—systematic learning-rate sweeps should precede architectural changes."
   },
   {
     "title": "LoRA Learns Less and Forgets Less",
@@ -295,7 +331,7 @@
     "pillar": "SFT",
     "type": "Paper",
     "source": "Obsidian Vault",
-    "takeaway": "Targeted domain tool-calling SFT allows compact SLMs to beat much larger generalists on strict API schemas."
+    "takeaway": "Targeted domain tool-calling SFT allows compact SLMs to outperform larger generalists on strict API schemas."
   },
   {
     "title": "Fine-Tune an SLM or Prompt an LLM? The Case of Generating Low-Code Workflows",
@@ -502,7 +538,7 @@
     "pillar": "RL",
     "type": "Blog / Case Study",
     "source": "Obsidian Vault",
-    "takeaway": "Market overview of why realistic, sandboxed enterprise RL environments—not algorithms—are the real moat."
+    "takeaway": "Market overview of why realistic, sandboxed enterprise RL environments—not algorithms—constitute the primary engineering bottleneck."
   },
   {
     "title": "On-Policy Distillation of Language Models: Learning from Self-Generated Mistakes (GKD)",
@@ -619,7 +655,7 @@
     "pillar": "Distillation",
     "type": "Blog / Case Study",
     "source": "Apple Notes",
-    "takeaway": "Clear practitioner breakdown of when to choose SFT, RL, or OPD—and why privileged-hint self-distillation goes unstable."
+    "takeaway": "Clear practitioner breakdown of when to choose SFT, RL, or OPD—and why privileged-hint self-distillation exhibits training instability."
   },
   {
     "title": "RLTL;DR: Self-Improvement by Internalizing Self-Generated Feedback",
