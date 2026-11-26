@@ -64,6 +64,10 @@
       {
         "label": "Coinbase Engineering: Owning Intelligence (Part 1)",
         "url": "https://www.coinbase.com/blog/part-one-how-coinbase-built-evaluated-and-post-trained-a-fraud-agent"
+      },
+      {
+        "label": "Coinbase Engineering: Owning Intelligence (Part 3 — Qwen3.5-9B & Ray Serve)",
+        "url": "https://www.coinbase.com/blog/part-three-owning-intelligence-series"
       }
     ]
   },
@@ -492,8 +496,8 @@
   },
   {
     "slug": "marketplace-slms-booking-checkr-uber",
-    "title": "High-Volume Marketplace & Compliance SLMs (Booking.com, Checkr, Uber, DoorDash)",
-    "company": "Booking.com · Checkr · Uber · DoorDash · Ramp",
+    "title": "High-Volume Marketplace & Compliance SLMs (Booking.com, Checkr, Uber, DoorDash, Walmart)",
+    "company": "Booking.com · Checkr · Uber · DoorDash · Walmart",
     "industry": "E-Commerce, Logistics & Compliance",
     "year": "2024–2026",
     "modelSize": "3.8B–8B",
@@ -554,12 +558,28 @@
     ],
     "links": [
       {
-        "label": "Booking.com AI: Practical LLM Evaluation & Production Tips",
+        "label": "Amazon Science × Booking.com: Speeding Up Language Models for Travel Applications (Oct 2026)",
+        "url": "https://www.amazon.science/blog/speeding-up-language-models-for-travel-applications"
+      },
+      {
+        "label": "Booking.com AI: Practical LLM Evaluation Tips (Aug 2025)",
         "url": "https://booking.ai/llm-evaluation-practical-tips-at-booking-com-1b038a0d6662"
       },
       {
-        "label": "ZenML LLMOps Production Database",
-        "url": "https://www.zenml.io/llmops-database"
+        "label": "Uber Engineering: Open Source and In-House — How Uber Optimizes LLM Training (Apr 2026)",
+        "url": "https://www.uber.com/us/en/blog/open-source-and-in-house-how-uber-optimizes-llm-training/"
+      },
+      {
+        "label": "Meta Case Study (Checkr / Case-Based Research): Llama-3-8B via Predibase",
+        "url": "https://developer.meta.com/static-resource/llama-case-study-case-based-research/"
+      },
+      {
+        "label": "Walmart Global Tech: Using LLMs to Manage Product Catalogs (Apr 2025)",
+        "url": "https://tech.walmart.com/content/walmart-global-tech/en_us/blog/post/using-llms-to-manage-product-catalogs.html"
+      },
+      {
+        "label": "DoorDash Engineering: LLM Blog Series",
+        "url": "https://careersatdoordash.com/blog/category/engineering/data-science-and-machine-learning/llm/"
       }
     ]
   },
@@ -777,6 +797,284 @@
       {
         "label": "Thinking Machines: LoRA Without Regret",
         "url": "https://thinkingmachines.ai/blog/lora/"
+      }
+    ]
+  },
+  {
+    "slug": "airbnb-2b-policy-classifier",
+    "title": "Airbnb 2B Production Policy Classifier",
+    "company": "Airbnb",
+    "industry": "Marketplace & Trust",
+    "year": "2026",
+    "modelSize": "2B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Gemma-derived E2B (2B effective parameters)",
+    "methods": [
+      "SFT"
+    ],
+    "methodLabel": "Domain Supervised Fine-Tuning (GLOWC)",
+    "businessValueTier": "Deployment",
+    "businessValueTag": "Production Deployment",
+    "sourceOrigin": [
+      "Web Research"
+    ],
+    "headlineMetrics": [
+      {
+        "value": "0.902 F1",
+        "label": "Up from 0.563 baseline (frontier parity)"
+      },
+      {
+        "value": "35 ms",
+        "label": "Median latency (vs. ~900 ms API)"
+      },
+      {
+        "value": "~1% cost",
+        "label": "Serving cost vs. frontier APIs"
+      },
+      {
+        "value": "1× GPU",
+        "label": "Single-GPU vLLM serving at thousands of RPM"
+      }
+    ],
+    "summary": "Airbnb fine-tuned a 2B-parameter open-weight model via its internal GLOWC pipeline for critical-path pricing and payment transparency screening, reaching frontier-level F1 (0.902) at 35 ms median latency and roughly 1% of frontier API cost.",
+    "businessValueAnalysis": "Demonstrates the unit-economics limit of ultra-compact SLMs on high-throughput policy classification. Screening user-generated marketplace content at thousands of requests per minute under a strict 200 ms latency ceiling is infeasible with ~900 ms external frontier APIs. Self-hosting a fine-tuned 2B checkpoint on a single GPU reduces serving expenditure by two orders of magnitude while eliminating external data egress.",
+    "problemContext": "User-generated marketplace content must be screened in the request critical path for pricing-transparency and off-platform payment policy violations under a 200 ms latency budget. Base small models scored poorly (0.563 F1), whereas closed frontier APIs violated both latency (~900 ms median) and high-volume cost envelopes.",
+    "technicalRecipe": {
+      "architecture": "Gemma-derived E2B (2B effective parameters) served on a single GPU via vLLM",
+      "trainingStack": "Airbnb internal GLOWC fine-tuning framework paired with Eval-Driven Development (EDD) pipelines",
+      "dataAndHarness": "Hundreds of thousands of de-identified, in-domain production classification examples with strict policy definitions.",
+      "rewardDesign": "Supervised cross-entropy classification loss calibrated against held-out policy F1 and tail-latency benchmarks."
+    },
+    "quantifiedResults": [
+      "Maximum F1 increased from 0.563 (unadapted baseline) to 0.902 after domain fine-tuning, matching top-tier closed frontier APIs.",
+      "Achieved 35 ms median latency and ~85 ms P99 latency (vs. ~900 ms median for frontier APIs), staying well inside the 200 ms SLA.",
+      "Reduced operational serving cost to roughly 1% of equivalent frontier API pricing at thousands of requests per minute."
+    ],
+    "keyLearnings": [
+      "At high request rates and strict sub-200 ms SLAs, 2B-parameter SFT models can match frontier classification quality at two orders of magnitude lower cost when backed by large, clean de-identified domain datasets.",
+      "Fast evaluation turnaround (Airbnb reduced eval cycles from weeks to one day via Eval-Driven Development) is a prerequisite for rapid adapter iteration."
+    ],
+    "watchouts": [
+      "Requires hundreds of thousands of clean, de-identified domain labels; results apply to bounded classification rather than open-ended multi-turn synthesis."
+    ],
+    "links": [
+      {
+        "label": "Airbnb Tech Blog: Frontier Quality at 1% of the Cost (Nov 2026)",
+        "url": "https://airbnb.tech/ai-ml/frontier-quality-at-1-of-the-cost-a-production-benchmark-of-llm-classifiers/"
+      },
+      {
+        "label": "Airbnb Engineering: Eval-Driven Development (Jul 2026)",
+        "url": "https://medium.com/airbnb-engineering/from-weeks-to-a-day-how-we-made-llm-evaluation-fast-enough-to-iterate-on-14e2d35198b4"
+      }
+    ]
+  },
+  {
+    "slug": "shopify-sidekick-task-experts",
+    "title": "Shopify Sidekick Task Experts (Specialist Split)",
+    "company": "Shopify",
+    "industry": "Commerce & SaaS",
+    "year": "2026",
+    "modelSize": "Compact Open-Weight (Nemotron 3.5 Lightning)",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "NVIDIA Nemotron 3.5 Lightning",
+    "methods": [
+      "RL",
+      "SFT"
+    ],
+    "methodLabel": "NeMo RL + Daily Continual Learning Loop",
+    "businessValueTier": "Deployment",
+    "businessValueTag": "Production Deployment",
+    "sourceOrigin": [
+      "Web Research"
+    ],
+    "headlineMetrics": [
+      {
+        "value": "-90–96%",
+        "label": "Serving cost vs. frontier API"
+      },
+      {
+        "value": "7× faster",
+        "label": "Subagent execution speed"
+      },
+      {
+        "value": "40:1",
+        "label": "Input schema-to-output token ratio"
+      },
+      {
+        "value": "Daily",
+        "label": "Continual PyTorch weight update loop"
+      }
+    ],
+    "summary": "Shopify split its Sidekick commerce agent so a frontier model handles merchant dialogue while post-trained open-weight task experts execute heavy background subagents—cutting GraphQL subagent costs by 90%–96% and running 7× faster at higher accuracy.",
+    "businessValueAnalysis": "Illustrates the dominant large-enterprise deployment architecture (specialist split). Shopify's Admin API GraphQL subagent ingests roughly 40 input schema and documentation tokens for every 1 output token generated; routing that workload to metered frontier APIs creates severe marginal cost overhead. Moving the subagent onto self-hosted, post-trained open weights reduces inference expenditure by 90%–96% while improving latency and accuracy.",
+    "problemContext": "General-purpose frontier models performed well as conversational orchestrators inside Sidekick, but invoking them repeatedly on context-dense, narrow background subtasks (schema lookup, documentation search, GraphQL query synthesis) was slow and expensive.",
+    "technicalRecipe": {
+      "architecture": "Frontier orchestrator delegating to self-hosted NVIDIA Nemotron 3.5 Lightning task experts served on vLLM",
+      "trainingStack": "PyTorch, NVIDIA Megatron Bridge, and NeMo RL integrated into a daily automated continual-learning loop",
+      "dataAndHarness": "Production interaction logs, merchant corrections, rejected outputs, and execution failures mined and repaired continuously.",
+      "rewardDesign": "Automated rubric evaluations scored by a fine-tuned LLM judge calibrated against human domain expert labels, alongside API schema execution checks."
+    },
+    "quantifiedResults": [
+      "Post-trained GraphQL task expert scored slightly higher on query generation accuracy than the overarching frontier model.",
+      "Reduced response latency by 7× on self-hosted vLLM GPU infrastructure.",
+      "Lowered inference and serving expenditure by 90% to 96% relative to frontier API execution."
+    ],
+    "keyLearnings": [
+      "Partition production agents into a frontier conversational orchestrator and post-trained open-weight specialist subagents for context-heavy, high-frequency tool calls.",
+      "High input-to-output token ratios (such as 40:1 API schema reads) strongly favor self-hosted post-trained open weights over per-token closed APIs.",
+      "Closing the continual-learning loop from production failures into scheduled weight updates prevents static model drift."
+    ],
+    "watchouts": [
+      "Maintaining daily retraining and automated rubric-judge calibration requires mature PyTorch/vLLM MLOps and regression gating."
+    ],
+    "links": [
+      {
+        "label": "Shopify Engineering: How Shopify Turns Open Models Into Task Experts (Oct 2026)",
+        "url": "https://shopify.engineering/open-model-task-experts"
+      },
+      {
+        "label": "PyTorch Blog: How Shopify Built a Continual Learning Loop with PyTorch and vLLM (Sep 2026)",
+        "url": "https://pytorch.org/blog/how-shopify-built-a-continual-learning-loop-with-pytorch-and-vllm/"
+      }
+    ]
+  },
+  {
+    "slug": "capital-one-macaw",
+    "title": "Capital One MACAW Multi-Agent Platform",
+    "company": "Capital One",
+    "industry": "Banking & Financial Services",
+    "year": "2026",
+    "modelSize": "Customized Open-Weight (Llama Family)",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Deeply Adapted Open-Weight Llama Variants",
+    "methods": [
+      "SFT"
+    ],
+    "methodLabel": "Deep Domain Fine-Tuning on Banking Policies",
+    "businessValueTier": "Deployment",
+    "businessValueTag": "Production Deployment",
+    "sourceOrigin": [
+      "Web Research"
+    ],
+    "headlineMetrics": [
+      {
+        "value": "Millions",
+        "label": "Live fraud-center & voice calls"
+      },
+      {
+        "value": "MACAW",
+        "label": "Multi-agent role decomposition"
+      },
+      {
+        "value": "VPC",
+        "label": "Full regulated data residency"
+      },
+      {
+        "value": "Open-Weight",
+        "label": "Eliminates closed-API lock-in"
+      }
+    ],
+    "summary": "Capital One built its production MACAW multi-agent platform around heavily fine-tuned open-weight Llama models customized on internal banking nomenclature and regulatory policies, handling live fraud-center and customer voice workflows.",
+    "businessValueAnalysis": "Demonstrates why heavily regulated financial institutions invest in owning open-weight models rather than wrapping external frontier APIs. Banking fraud and voice support require strict compliance auditability, zero external customer data egress, deep alignment to internal policy semantics, and resilience against third-party API regressions or pricing changes.",
+    "problemContext": "Standard closed-source frontier models lack proprietary banking policy conventions, cannot be modified at the weight level for regulatory alignment, and introduce external governance barriers across millions of customer calls.",
+    "technicalRecipe": {
+      "architecture": "MACAW multi-agent orchestration decomposing workflows into specialized understanding, reasoning, validation, and explanation agents",
+      "trainingStack": "Internal enterprise fine-tuning infrastructure over open-weight foundation checkpoints (Llama variants)",
+      "dataAndHarness": "Proprietary banking transcripts, fraud-center workflows, internal policy specifications, and domain terminology.",
+      "rewardDesign": "Supervised domain adaptation paired with strict compliance validation agents and runtime governance controls."
+    },
+    "quantifiedResults": [
+      "Deployed in live production across millions of customer fraud-center and voice support interactions.",
+      "Deep domain fine-tuning adapted open-weight checkpoints extensively to proprietary banking policies while keeping all execution inside regulated infrastructure."
+    ],
+    "keyLearnings": [
+      "In regulated banking, decomposing complex workflows into narrow multi-agent roles (understanding, reasoning, validation, explanation) makes customized open-weight models auditable and reliable.",
+      "Weight ownership avoids external vendor lock-in and enables domain adaptation that prompt-level guardrails alone cannot guarantee."
+    ],
+    "watchouts": [
+      "Exact parameter counts, training budgets, and head-to-head quantitative benchmark deltas remain proprietary due to banking disclosure constraints."
+    ],
+    "links": [
+      {
+        "label": "VentureBeat: Why Capital One Built Its Multi-Agent AI Platform Around Open-Weight Models (Aug 2026)",
+        "url": "https://venturebeat.com/orchestration/why-capital-one-built-its-multi-agent-ai-platform-around-open-weight-models"
+      }
+    ]
+  },
+  {
+    "slug": "servicenow-apriel-workflow-slms",
+    "title": "ServiceNow Workflow SLMs (12B & Apriel 5B / 15B)",
+    "company": "ServiceNow",
+    "industry": "Enterprise IT & Workflow Automation",
+    "year": "2025–2026",
+    "modelSize": "5B / 12B / 15B",
+    "sizeCategory": "Midsize (11B–35B)",
+    "baseModel": "Mistral-Nemo-12B, Apriel-5B, Apriel-1.5-15B-Thinker",
+    "methods": [
+      "SFT",
+      "Distillation"
+    ],
+    "methodLabel": "Domain SFT & Progressive Reasoning Distillation",
+    "businessValueTier": "Deployment",
+    "businessValueTag": "Production Deployment",
+    "sourceOrigin": [
+      "Obsidian Vault",
+      "Web Research"
+    ],
+    "headlineMetrics": [
+      {
+        "value": "~+10%",
+        "label": "Quality gain vs. prompted LLMs (KDD)"
+      },
+      {
+        "value": "5B / 12B / 15B",
+        "label": "Single-GPU enterprise SLM family"
+      },
+      {
+        "value": "JSON/Flow",
+        "label": "Text-to-Flow, Code & Cypher"
+      },
+      {
+        "value": "Hybrid",
+        "label": "In-house SLMs + third-party LLMs"
+      }
+    ],
+    "summary": "ServiceNow deployed fine-tuned 12B models and its Apriel 5B / 15B-Thinker family inside Now Assist and Flow Designer for structured IT/HR workflow generation, demonstrating ~10% higher structural quality than prompted large models.",
+    "businessValueAnalysis": "Enterprise ITSM and HR platforms rely on deterministic low-code schemas (JSON flows, Cypher queries, scripts) where hallucinated fields break execution. ServiceNow's dual-track strategy deploys compact in-house SLMs for high-precision, privacy-sensitive platform tasks on single-GPU budgets while reserving external frontier models for general-purpose queries.",
+    "problemContext": "Prompting general-purpose frontier LLMs to emit proprietary ServiceNow Flow Designer JSON schemas and platform code yielded structural errors, high latency, and elevated per-tenant serving cost.",
+    "technicalRecipe": {
+      "architecture": "Fine-tuned 12B models (Mistral-Nemo-12B base), Apriel-5B (4.8B decoder), and Apriel-1.5-15B-Thinker (15B reasoning model, including hybrid Mamba-attention Apriel-H1 research)",
+      "trainingStack": "Domain SFT for structured workflow generation; progressive distillation and post-training in collaboration with NVIDIA (Llama-Nemotron datasets)",
+      "dataAndHarness": "Enterprise ITSM, HR, Flow Designer JSON schemas, Text-to-Code, and Text-to-Cypher datasets.",
+      "rewardDesign": "Supervised schema/execution compliance and reasoning distillation validated on enterprise workflow benchmarks."
+    },
+    "quantifiedResults": [
+      "Controlled KDD evaluation (arXiv:2505.24189) found fine-tuned SLMs outperformed prompted large LLMs by ~10% on average for low-code JSON workflow generation.",
+      "Apriel 5B and 15B checkpoints execute on single-GPU footprints for low-latency enterprise tenant isolation."
+    ],
+    "keyLearnings": [
+      "For proprietary DSLs, low-code JSON workflows, and query languages (Cypher/SQL), fine-tuning a 5B–15B SLM consistently outperforms few-shot prompting of much larger general models.",
+      "A dual-track serving strategy—in-house SLMs for native platform schemas plus frontier APIs for open-ended breadth—balances unit economics with capability."
+    ],
+    "watchouts": [
+      "Platform-specific workflow models require continuous dataset updates as underlying product APIs and schema versions evolve."
+    ],
+    "links": [
+      {
+        "label": "Paper (KDD / arXiv:2505.24189): Fine-Tune an SLM or Prompt an LLM?",
+        "url": "https://arxiv.org/abs/2505.24189"
+      },
+      {
+        "label": "ServiceNow SLM Architecture Infocard (12B)",
+        "url": "https://downloads.docs.servicenow.com/resource/enus/infocard/sn-slm.pdf"
+      },
+      {
+        "label": "ServiceNow: Apriel 5B Enterprise SLM",
+        "url": "https://www.servicenow.com/workflow/ai/apriel-5b-small-enterprise-language-model.html"
+      },
+      {
+        "label": "Hugging Face: ServiceNow-AI/Apriel-1.5-15b-Thinker",
+        "url": "https://huggingface.co/ServiceNow-AI/Apriel-1.5-15b-Thinker"
       }
     ]
   },
@@ -1062,6 +1360,140 @@
       {
         "label": "AWS: Deterministic Models in Regulated Industries (Artificial Genius)",
         "url": "https://aws.amazon.com/blogs/machine-learning/overcoming-llm-hallucinations-in-regulated-industries-artificial-geniuss-deterministic-models-on-amazon-nova/"
+      }
+    ]
+  },
+  {
+    "slug": "cisco-antares-security-slms",
+    "title": "Cisco Antares Vulnerability Localization Agents (350M–3B)",
+    "company": "Cisco Foundation AI & Yale",
+    "industry": "Cybersecurity & DevSecOps",
+    "year": "2026",
+    "modelSize": "350M / 1B / 3B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "IBM Granite 4.0 (350M, 1B, 3B)",
+    "methods": [
+      "SFT",
+      "RL"
+    ],
+    "methodLabel": "Multi-Turn Exploration SFT + GRPO (RLVR)",
+    "businessValueTier": "Benchmark",
+    "businessValueTag": "Controlled Evaluation",
+    "sourceOrigin": [
+      "Web Research"
+    ],
+    "headlineMetrics": [
+      {
+        "value": "0.223 F1",
+        "label": "Antares-3B vs. 0.221 GPT-5.5"
+      },
+      {
+        "value": "$0.82 vs $141",
+        "label": "500-task sweep cost (~170× cheaper)"
+      },
+      {
+        "value": "<5 GB VRAM",
+        "label": "Antares-1B local footprint (0.209 F1)"
+      },
+      {
+        "value": "Apache 2.0",
+        "label": "Open weights & 290-repo VLoc Bench"
+      }
+    ],
+    "summary": "Cisco Foundation AI post-trained 350M, 1B, and 3B IBM Granite 4.0 models via SFT and GRPO for multi-turn terminal repository exploration (grep, find, cat), matching GPT-5.5 on vulnerability localization at ~170× lower evaluation cost.",
+    "businessValueAnalysis": "Addresses a core enterprise DevSecOps constraint: security teams cannot upload proprietary repositories to external cloud APIs, yet repository-scale vulnerability triage requires multi-turn code navigation. Antares-1B and 3B run locally in under 5–8 GB VRAM at <$0.002 per task while matching frontier localization accuracy.",
+    "problemContext": "Given a CWE vulnerability description and a repository snapshot, an agent must navigate multi-language codebases via shell tools to localize vulnerable files. General open models of 27B–31B scale scored only 0.091–0.101 file F1 on VLoc Bench.",
+    "technicalRecipe": {
+      "architecture": "IBM Granite 4.0 bases at 350M (32K context), 1B (128K context), and 3B (128K context), served locally on vLLM",
+      "trainingStack": "Two-stage pipeline: Stage 1 multi-turn exploration SFT followed by Stage 2 GRPO with verifiable localization rewards",
+      "dataAndHarness": "Evaluated on VLoc Bench: 500 real-world vulnerability tasks across 290 repositories, 6 package ecosystems (npm, pip, maven, go, rust, composer), and 147 CWE categories using terminal tools (grep, find, cat).",
+      "rewardDesign": "Verifiable file-localization rewards computed directly against ground-truth patched vulnerability locations."
+    },
+    "quantifiedResults": [
+      "Antares-3B achieved 0.223 file F1 on VLoc Bench, matching GPT-5.5 (0.221) and approaching GPT-5.5 xhigh (0.229).",
+      "Antares-1B achieved 0.209 file F1, outperforming GLM-5.2 (0.186), Gemini-3-Pro (0.152), Gemma-4-31B (0.101), and Qwen3.5-27B (0.091).",
+      "Completed the full 500-task benchmark in ~15 minutes on a single H100 for $0.82 total vs. ~$141 for GPT-5.5."
+    ],
+    "keyLearnings": [
+      "On bounded read-only repository exploration with verifiable file F1 rewards, SFT + GRPO enables 1B–3B models to match frontier models two orders of magnitude larger.",
+      "Apache 2.0 weights fitting in <5 GB VRAM enable strictly air-gapped or laptop-local enterprise security agents."
+    ],
+    "watchouts": [
+      "Evaluated on VLoc Bench localization (finding vulnerable files) rather than end-to-end autonomous vulnerability patching; production deployment metrics are not yet published."
+    ],
+    "links": [
+      {
+        "label": "Cisco AI Blog: Introducing Antares (Jul 2026)",
+        "url": "https://blogs.cisco.com/ai/introducing-antares-the-most-efficient-open-weight-ai-models-for-vulnerability-localization"
+      },
+      {
+        "label": "Paper (arXiv:2608.02407): Antares Vulnerability Localization",
+        "url": "https://arxiv.org/abs/2608.02407"
+      }
+    ]
+  },
+  {
+    "slug": "salesforce-xlam2-apigen-mt",
+    "title": "Salesforce xLAM-2 & APIGen-MT (3B / 8B Agentic Tool Calling)",
+    "company": "Salesforce AI Research",
+    "industry": "Enterprise CRM & Customer Operations",
+    "year": "2025",
+    "modelSize": "3B / 8B / 32B",
+    "sizeCategory": "Small (≤10B)",
+    "baseModel": "Llama & Qwen Open-Weight Bases (1B–70B family)",
+    "methods": [
+      "SFT",
+      "Distillation"
+    ],
+    "methodLabel": "State-Verified Multi-Turn Data Synthesis (APIGen-MT) + SFT",
+    "businessValueTier": "Benchmark",
+    "businessValueTag": "Controlled Evaluation",
+    "sourceOrigin": [
+      "Web Research"
+    ],
+    "headlineMetrics": [
+      {
+        "value": "69.25%",
+        "label": "xLAM-2-8B BFCL v3 multi-turn (vs 41% GPT-4o)"
+      },
+      {
+        "value": "46.7%",
+        "label": "xLAM-2-8B tau-bench (vs 38.2% Llama-70B)"
+      },
+      {
+        "value": "56.0%",
+        "label": "xLAM-2-3B BFCL v3 multi-turn"
+      },
+      {
+        "value": "State Diff",
+        "label": "Database-state verified trajectories"
+      }
+    ],
+    "summary": "Salesforce AI Research introduced APIGen-MT, synthesizing multi-turn enterprise agent trajectories verified against executable mock database state transitions—enabling 3B and 8B xLAM-2 models to exceed much larger models on BFCL v3 and tau-bench.",
+    "businessValueAnalysis": "Provides an open, reproducible methodology for solving multi-turn enterprise tool-calling data scarcity. While the published xLAM-2 checkpoints are research benchmarks (distinct from Salesforce's proprietary Agentforce production routing layer), the state-diff blueprint pipeline transfers directly to any enterprise with executable staging APIs.",
+    "problemContext": "Small models frequently fail multi-turn enterprise customer-service workflows (order edits, refunds, rebooking) because they lose conversational state, skip policy preconditions, or fail to recover from API errors.",
+    "technicalRecipe": {
+      "architecture": "xLAM-2-fc-r family (1B, 3B, 8B, 32B, 70B) trained on multi-turn function-calling interactions",
+      "trainingStack": "Two-phase APIGen-MT pipeline: Phase 1 synthesizes verified task blueprints with ground-truth API call sequences; Phase 2 simulates multi-turn human–agent interplay retaining only trajectories matching the exact target database state.",
+      "dataAndHarness": "Executable retail, airline, and enterprise API sandboxes evaluated on tau-bench (pass@1 and pass^k consistency) and BFCL v3.",
+      "rewardDesign": "Execution-state verification filtering (exact final database state equivalence) prior to supervised training."
+    },
+    "quantifiedResults": [
+      "On BFCL v3 multi-turn function calling, xLAM-2-8b-fc-r scored 69.25% and xLAM-2-3b-fc-r scored 56.00%, surpassing GPT-4o FC (41%) and o1 (36%).",
+      "On tau-bench (Retail and Airline average), xLAM-2-8b-fc-r reached 46.7%, exceeding Llama-3.1-70B-Instruct (38.2%) and DeepSeek-V3 (40.6%).",
+      "Improved multi-trial consistency (pass^k curves), reducing variance across repeated enterprise workflow runs."
+    ],
+    "keyLearnings": [
+      "Synthesizing multi-turn agent training data backwards from executable database state transitions produces substantially cleaner supervision than scraping unverified chat logs.",
+      "Measuring pass^k consistency across repeated trials—not only pass@1—is critical for evaluating enterprise tool-calling reliability."
+    ],
+    "watchouts": [
+      "Published xLAM-2 metrics reflect controlled research benchmarks (tau-bench, BFCL v3) rather than live customer A/B traffic."
+    ],
+    "links": [
+      {
+        "label": "Paper (arXiv:2504.03601): APIGen-MT & xLAM-2",
+        "url": "https://arxiv.org/abs/2504.03601"
       }
     ]
   }

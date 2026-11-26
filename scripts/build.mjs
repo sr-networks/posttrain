@@ -408,7 +408,7 @@ function buildHomePage() {
         Industrial post-training is warranted when routing requests to a general-purpose frontier API violates at least one operational constraint: (i) unit inference cost at scale, (ii) tail-latency requirements, (iii) VPC or on-premise data residency, or (iv) task accuracy ceilings caused by domain-specific conventions or version regressions across closed API updates. Conversely, open-ended, low-volume workflows with rapidly shifting specifications rarely justify weight adaptation.
       </p>
       <p>
-        Across the ${caseStudies.length} documented engineering studies compiled here, adapted 4B–35B models report 5×–64× reductions in serving cost and 2×–30× reductions in latency relative to frontier baselines, while improving task-specific <em>F</em><sub>1</sub>, recall, or rubric compliance when trained against verified outcomes or calibrated domain rubrics.
+        Across the ${caseStudies.length} documented engineering studies compiled here, adapted 2B–35B models report 5×–100× reductions in serving cost and 2×–30× reductions in latency relative to frontier baselines, while improving task-specific <em>F</em><sub>1</sub>, recall, or rubric compliance when trained against verified outcomes or calibrated domain rubrics.
       </p>
     </div>
 
@@ -431,10 +431,10 @@ function buildHomePage() {
           <tbody>
             <tr>
               <td>High-volume single-turn classification, routing, or schema extraction</td>
-              <td>Off-policy sequence distillation + LoRA SFT</td>
-              <td>3.8B – 8B</td>
-              <td>Consensus teacher labels</td>
-              <td><a href="./case-studies/marketplace-slms-booking-checkr-uber/">Checkr, Booking.com, Uber</a></td>
+              <td>Off-policy sequence distillation or domain SFT (LoRA / full)</td>
+              <td>2B – 8B</td>
+              <td>De-identified production labels or consensus teacher outputs</td>
+              <td><a href="./case-studies/airbnb-2b-policy-classifier/">Airbnb (2B)</a>, <a href="./case-studies/marketplace-slms-booking-checkr-uber/">Checkr, Booking.com, Uber</a></td>
             </tr>
             <tr>
               <td>Long-context structured document generation (clinical, legal)</td>
@@ -444,11 +444,11 @@ function buildHomePage() {
               <td><a href="./case-studies/baseten-medical-scribes-isft/">Baseten Scribes</a>, <a href="./case-studies/harvey-legal-agent-suite/">Harvey Compaction</a></td>
             </tr>
             <tr>
-              <td>Multi-turn search, coding, or risk agents with objective outcomes</td>
-              <td>Multi-turn RLVR (GRPO / DAPO / GSPO)</td>
-              <td>8B – 32B, 35B-A3B</td>
+              <td>Multi-turn search, coding, security, or risk subagents with objective outcomes</td>
+              <td>Multi-turn RLVR (GRPO / DAPO / GSPO) &amp; specialist split</td>
+              <td>1B – 32B, 35B-A3B</td>
               <td>Execution tests, retrieval <em>F</em><sub>1</sub>, confirmed outcomes</td>
-              <td><a href="./case-studies/coinbase-fraud-agent/">Coinbase (9B)</a>, <a href="./case-studies/openpipe-art-e/">ART·E (14B)</a>, <a href="./case-studies/cognition-swe-grep/">SWE-grep</a></td>
+              <td><a href="./case-studies/shopify-sidekick-task-experts/">Shopify Sidekick</a>, <a href="./case-studies/coinbase-fraud-agent/">Coinbase (9B)</a>, <a href="./case-studies/cisco-antares-security-slms/">Cisco Antares (1B–3B)</a></td>
             </tr>
             <tr>
               <td>Compression of a high-capacity open-weight teacher into a fast student</td>

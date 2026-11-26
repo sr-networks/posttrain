@@ -1,5 +1,131 @@
 [
   {
+    "title": "Airbnb Engineering: Frontier Quality at 1% of the Cost — A Production Benchmark of LLM Classifiers",
+    "url": "https://airbnb.tech/ai-ml/frontier-quality-at-1-of-the-cost-a-production-benchmark-of-llm-classifiers/",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Fine-tuned 2B Gemma-derived model lifted pricing-policy classification F1 from 0.563 to 0.902 at 35 ms median latency and ~1% of frontier API cost."
+  },
+  {
+    "title": "Airbnb Engineering: From Weeks to a Day — Eval-Driven Development for LLMs",
+    "url": "https://medium.com/airbnb-engineering/from-weeks-to-a-day-how-we-made-llm-evaluation-fast-enough-to-iterate-on-14e2d35198b4",
+    "year": 2026,
+    "pillar": "Evals & Rewards",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Engineering architecture for compressing production LLM/LoRA evaluation turnaround from weeks to a single day."
+  },
+  {
+    "title": "Shopify Engineering: How Shopify Turns Open Models Into Task Experts (Sidekick)",
+    "url": "https://shopify.engineering/open-model-task-experts",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Specialist-split architecture pairing a frontier orchestrator with a post-trained Nemotron 3.5 Lightning GraphQL subagent: 7x faster and 90%–96% lower cost."
+  },
+  {
+    "title": "PyTorch × Shopify: How Shopify Built a Continual Learning Loop with PyTorch and vLLM",
+    "url": "https://pytorch.org/blog/how-shopify-built-a-continual-learning-loop-with-pytorch-and-vllm/",
+    "year": 2026,
+    "pillar": "Continual Learning & Memory",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Closed-loop production pipeline mining user corrections and failures into daily PyTorch/NeMo RL weight updates served via vLLM."
+  },
+  {
+    "title": "Coinbase Engineering: Owning Intelligence Series (Part 3 — Qwen3.5-9B & Ray Serve)",
+    "url": "https://www.coinbase.com/blog/part-three-owning-intelligence-series",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Details live Ray Serve + vLLM deployment (L40S GPUs) and compact serving contract decoupling for Coinbase's 9B RL fraud agent."
+  },
+  {
+    "title": "Capital One: Why Capital One Built Its Multi-Agent AI Platform (MACAW) Around Open-Weight Models",
+    "url": "https://venturebeat.com/orchestration/why-capital-one-built-its-multi-agent-ai-platform-around-open-weight-models",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Regulated banking multi-agent architecture running deeply fine-tuned open-weight Llama models across millions of live fraud and voice calls."
+  },
+  {
+    "title": "Cisco Foundation AI: Introducing Antares — Open-Weight SLMs for Vulnerability Localization (arXiv:2608.02407)",
+    "url": "https://blogs.cisco.com/ai/introducing-antares-the-most-efficient-open-weight-ai-models-for-vulnerability-localization",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "SFT + GRPO on IBM Granite 4.0 (350M/1B/3B) matched GPT-5.5 file F1 (0.223 vs. 0.221) on 290-repo VLoc Bench at $0.82 vs. $141 sweep cost."
+  },
+  {
+    "title": "Amazon Science × Booking.com: Speeding Up Language Models for Travel Applications",
+    "url": "https://www.amazon.science/blog/speeding-up-language-models-for-travel-applications",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Knowledge distillation combined with Medusa speculative decoding closed >90% of the teacher-student gap for high-throughput travel models."
+  },
+  {
+    "title": "Uber Engineering: Open Source and In-House — How Uber Optimizes LLM Training",
+    "url": "https://www.uber.com/us/en/blog/open-source-and-in-house-how-uber-optimizes-llm-training/",
+    "year": 2026,
+    "pillar": "Frameworks & Infra",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Hybrid A100/H100 training infrastructure combining Ray, PyTorch, DeepSpeed ZeRO, FlashAttention, and LoRA over open-weight bases."
+  },
+  {
+    "title": "SAP Community: ABAP AI with Joule, VS Code, and Custom Code Migration",
+    "url": "https://community.sap.com/t5/technology-blog-posts-by-sap/2025-set-the-pace-2026-wins-the-race-abap-ai-with-joule-vs-code-and-ccm/ba-p/14302433",
+    "year": 2026,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Domain-tuned ABAP and ERP clean-core migration models integrated inside SAP AI Core and developer tooling."
+  },
+  {
+    "title": "ServiceNow: Apriel 5B & Apriel-1.5-15B-Thinker Enterprise Small Language Models",
+    "url": "https://www.servicenow.com/workflow/ai/apriel-5b-small-enterprise-language-model.html",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Enterprise-focused 5B and 15B reasoning SLMs deployed alongside 12B workflow models for ITSM, HR, and single-GPU tenant isolation."
+  },
+  {
+    "title": "Salesforce AI Research: APIGen-MT & xLAM-2 — Multi-Turn Agentic Data Synthesis (arXiv:2504.03601)",
+    "url": "https://arxiv.org/abs/2504.03601",
+    "year": 2025,
+    "pillar": "SFT",
+    "type": "Paper",
+    "source": "Web / X",
+    "takeaway": "Executable database state-diff synthesis enabled 3B and 8B xLAM-2 models to reach 56.0% and 69.25% on BFCL v3 multi-turn tool calling."
+  },
+  {
+    "title": "Meta Developer Case Study (Checkr / Case-Based Research): Fine-Tuned Llama-3-8B Document Classification",
+    "url": "https://developer.meta.com/static-resource/llama-case-study-case-based-research/",
+    "year": 2024,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Fine-tuned Llama-3-8B achieved >90% accuracy on complex legal/compliance records at 0.15s latency and 5x lower cost than GPT-4."
+  },
+  {
+    "title": "Walmart Global Tech: Using LLMs to Manage Product Catalogs",
+    "url": "https://tech.walmart.com/content/walmart-global-tech/en_us/blog/post/using-llms-to-manage-product-catalogs.html",
+    "year": 2025,
+    "pillar": "Industry Case Study",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "takeaway": "Task decomposition and fine-tuning pipelines for high-volume retail catalog attribute extraction across billions of items."
+  },
+  {
     "title": "Reward Hacking in Rubric-Based Reinforcement Learning",
     "url": "https://arxiv.org/abs/2605.12474",
     "year": 2026,
