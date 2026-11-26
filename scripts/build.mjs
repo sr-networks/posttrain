@@ -66,6 +66,9 @@ function renderMathToken(expr) {
 
   // Exponents like 10^3, 10^{-6}, 5 \times 10^{-5}
   s = s
+    .replace(/\\log/g, 'log')
+    .replace(/\\pi_\\theta/g, '<em>π</em><sub>θ</sub>')
+    .replace(/\\pi_T/g, '<em>π</em><sub><em>T</em></sub>')
     .replace(/\\times/g, '×')
     .replace(/\\to/g, '→')
     .replace(/\\pm/g, '±')
@@ -315,6 +318,7 @@ function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
     { key: 'cases', label: 'Case Studies', href: 'case-studies/' },
     { key: 'frameworks', label: 'Frameworks', href: 'frameworks/' },
     { key: 'playbook', label: 'Protocol', href: 'best-practices/' },
+    { key: 'guide', label: 'Pipeline Guide', href: 'post-training-guide/' },
     { key: 'blueprint', label: 'Industrial Sequence', href: 'company-blueprint/' },
     { key: 'refs', label: 'Bibliography', href: 'references/' }
   ];
@@ -483,6 +487,7 @@ function buildHomePage() {
         <li><a href="./rl/"><strong>Reinforcement Learning for Small and Midsize Models</strong></a> — Comparison of GRPO, DAPO, GSPO, CISPO, and GDPO; verifiable vs. rubric-based reward specification (<code>ProRubric</code>, <code>POW3R</code>, <code>Tournament-GRPO</code>, verbatim evidence schemas); and multi-turn numerical stability.</li>
         <li><a href="./distillation/"><strong>Knowledge Distillation</strong></a> — Exposure bias in off-policy distillation, sample efficiency of On-Policy Distillation (OPD), context-conditioned self-distillation (<code>SDFT</code>, <code>SDPO</code>, <code>RGSD</code>), and empirical OOD limitations.</li>
         <li><a href="./best-practices/"><strong>Experimental Protocol and Engineering Guidelines</strong></a> — Ten methodological practices covering harness state externalization, split hygiene, small-batch overfit smoke tests, token-ID preservation, and precision parity.</li>
+        <li><a href="./post-training-guide/"><strong>Modern Post-Training Pipeline Guide (Labonne, 2026)</strong></a> — Distilled end-to-end guide covering stage ordering, <code>pass@k</code> vs. <code>pass@1</code> dynamics, length-normalized preference tuning, harness-native small-model RL, and Multi-Domain On-Policy Distillation (MOPD).</li>
         <li><a href="./company-blueprint/"><strong>Industrial Post-Training Sequence</strong></a> — Seven-stage organizational decision process synthesized from Shwartz Ziv (2026), including pre-training verification via in-context skill extraction.</li>
         <li><a href="./frameworks/"><strong>Frameworks and Compute Sizing</strong></a> — Comparative specification of 11 open-source and managed training stacks (<code>verl</code>, <code>SkyRL</code>, <code>PrimeRL</code>, <code>ART</code>, <code>Unsloth</code>, <code>TRL</code>, <code>Tinker</code>) and single- vs. multi-GPU memory profiles.</li>
         <li><a href="./references/"><strong>Annotated Bibliography</strong></a> — Filterable index of ${references.length} primary research papers, engineering postmortems, and open-source repositories.</li>
@@ -842,6 +847,7 @@ function buildSearchIndex() {
     { title: 'Reinforcement Learning for Small and Midsize Models', category: 'Chapter', url: 'rl/', excerpt: 'GRPO, DAPO, GSPO, CISPO, GDPO; RLVR vs. rubric rewards (ProRubric, POW3R, Tournament-GRPO); numerical stability.', external: false },
     { title: 'Knowledge Distillation: Off-Policy, On-Policy, and Self-Distillation', category: 'Chapter', url: 'distillation/', excerpt: 'Exposure bias, On-Policy Distillation (OPD), SDFT/SDPO/RGSD, and late-2026 OOD limitations.', external: false },
     { title: 'Experimental Protocol and Engineering Guidelines', category: 'Chapter', url: 'best-practices/', excerpt: 'Harness externalization, evaluation hygiene, overfit smoke tests, token-ID preservation, and precision parity.', external: false },
+    { title: 'Modern Post-Training Pipeline Guide (Maxime Labonne, 2026)', category: 'Chapter', url: 'post-training-guide/', excerpt: 'SFT to RLVR to MOPD stage ordering, pass@k vs. pass@1 intuition, length-normalized DPO, harness-native small models, and style drift.', external: false },
     { title: 'Industrial Post-Training Sequence (Shwartz Ziv, 2026)', category: 'Chapter', url: 'company-blueprint/', excerpt: 'Seven-stage organizational sequence, pre-training in-context skill verification, and ~30B single-GPU LoRA baseline.', external: false },
     { title: 'Post-Training Frameworks and Compute Profiles', category: 'Reference', url: 'frameworks/', excerpt: 'verl, SkyRL, PrimeRL, OpenPipe ART, Unsloth, HF TRL, Tinker, Rocket, and GPU memory tables.', external: false },
     { title: 'Annotated Bibliography', category: 'Reference', url: 'references/', excerpt: 'Searchable bibliography of papers, engineering reports, and repositories.', external: false }
@@ -932,6 +938,15 @@ writeOut(
     activeNav: 'playbook',
     title: 'Experimental Protocol and Guidelines',
     description: 'Ten methodological guidelines for industrial post-training of small and midsize models.'
+  })
+);
+writeOut(
+  'post-training-guide/index.html',
+  buildMarkdownPage({
+    mdFile: 'labonne-guide.md',
+    activeNav: 'guide',
+    title: 'Modern Post-Training Pipeline Guide (Labonne, 2026)',
+    description: 'Distilled post-training guide from Maxime Labonne (The Information Bottleneck, Nov 2026) and Liquid AI LFM2: SFT, length-normalized DPO, RLVR, pass@k vs pass@1, and MOPD.'
   })
 );
 writeOut(
