@@ -15,5 +15,3 @@ Across eight seeds, paired MiCA matched LoRA at **68.43% ToolAlpaca accuracy** w
 ## How rank affects the trade-off
 
 Larger markers show higher adapter ranks. In one MiCA comparison at a fixed learning rate, increasing rank improved tool accuracy and slightly reduced retention. Rank gives us a way to explore the trade-off, and the learning rate matters too. Engram also found that LoRA’s capacity grows with rank, using likelihood to estimate learning and forgetting. [Predicting LoRA size for any dataset](https://engram.com/blog/lora-size)
-
-A setting sits on the Pareto frontier when no other tested setting for that method improves one outcome while matching or improving the other. The shared grid is still in progress. Replicating promising settings across seeds will help show which retention gains hold up.
