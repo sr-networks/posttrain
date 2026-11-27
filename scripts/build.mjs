@@ -9,6 +9,12 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const caseStudies = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/case-studies.json'), 'utf8'));
 const frameworksData = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/frameworks.json'), 'utf8'));
 const references = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/references.json'), 'utf8'));
+const toolAlpacaPost = {
+  title: 'Mapping the accuracy–retention trade-off in ToolAlpaca fine-tuning',
+  description: 'Explore individual runs of MiCA, LoRA, paired MiCA, and full fine-tuning on Qwen2.5-7B-Instruct.',
+  path: 'blog/toolalpaca-accuracy-retention/',
+  date: '2026-11-27'
+};
 
 function escapeHtml(str = '') {
   return String(str)
@@ -320,6 +326,7 @@ function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
     { key: 'playbook', label: 'Protocol', href: 'best-practices/' },
     { key: 'guide', label: 'Pipeline Guide', href: 'post-training-guide/' },
     { key: 'blueprint', label: 'Industrial Sequence', href: 'company-blueprint/' },
+    { key: 'blog', label: 'Blog', href: 'blog/' },
     { key: 'refs', label: 'Bibliography', href: 'references/' }
   ];
 
@@ -701,6 +708,40 @@ function buildMarkdownPage({ mdFile, activeNav, title, description }) {
   });
 }
 
+function buildBlogIndex() {
+  return pageShell({
+    title: 'Blog',
+    description: 'Experiments and practical notes on post-training.',
+    activeNav: 'blog',
+    rootPrefix: '../',
+    bodyHtml: `<section class="prose">
+      <h1>Blog</h1>
+      <article>
+        <h2><a href="../${toolAlpacaPost.path}">${escapeHtml(toolAlpacaPost.title)}</a></h2>
+        <p class="doc-meta"><time datetime="${toolAlpacaPost.date}">November 27, 2026</time> · Sten Rüdiger</p>
+        <p>${escapeHtml(toolAlpacaPost.description)}</p>
+      </article>
+    </section>`
+  });
+}
+
+function buildToolAlpacaPost() {
+  const { html } = renderMarkdown(fs.readFileSync(path.join(ROOT, 'docs/toolalpaca-accuracy-retention.md'), 'utf8'));
+  return pageShell({
+    ...toolAlpacaPost,
+    activeNav: 'blog',
+    rootPrefix: '../../',
+    bodyHtml: `<article class="prose-wide">
+      <h1>${escapeHtml(toolAlpacaPost.title)}</h1>
+      <p class="doc-subtitle">${escapeHtml(toolAlpacaPost.description)}</p>
+      <p class="doc-meta"><time datetime="${toolAlpacaPost.date}">November 27, 2026</time> · Sten Rüdiger</p>
+      <iframe class="blog-chart" src="explorer.html" title="Interactive ToolAlpaca accuracy and retention chart"></iframe>
+      <p><a href="explorer.html">Open the full-width chart</a></p>
+      <div class="prose">${html}</div>
+    </article>`
+  });
+}
+
 function buildFrameworksPage() {
   const fwRows = frameworksData.frameworks
     .map(
@@ -843,6 +884,7 @@ function buildReferencesPage() {
 function buildSearchIndex() {
   const index = [
     { title: 'Overview — Post-Training of Small and Midsize Models', category: 'Compendium', url: '', excerpt: 'Abstract, economic motivation, regime mapping, and summary of 15 empirical studies.', external: false },
+    { title: toolAlpacaPost.title, category: 'Blog', url: toolAlpacaPost.path, excerpt: toolAlpacaPost.description, external: false },
     { title: 'Supervised Fine-Tuning and Iterative Refinement', category: 'Chapter', url: 'sft/', excerpt: 'Generalization properties, Iterative SFT (iSFT), LoRA scaling, Shadow-FT, and hallucination amplification.', external: false },
     { title: 'Reinforcement Learning for Small and Midsize Models', category: 'Chapter', url: 'rl/', excerpt: 'GRPO, DAPO, GSPO, CISPO, GDPO; RLVR vs. rubric rewards (ProRubric, POW3R, Tournament-GRPO); numerical stability.', external: false },
     { title: 'Knowledge Distillation: Off-Policy, On-Policy, and Self-Distillation', category: 'Chapter', url: 'distillation/', excerpt: 'Exposure bias, On-Policy Distillation (OPD), SDFT/SDPO/RGSD, late-2026 OOD caveats, and Together AI cross-family off-policy distillation (Kimi-K3.1-Pro to Qwen3.8-27B, retention mixing).', external: false },
@@ -899,6 +941,9 @@ fs.copyFileSync(path.join(ROOT, 'src/styles.css'), path.join(PUBLIC_DIR, 'assets
 fs.copyFileSync(path.join(ROOT, 'src/app.js'), path.join(PUBLIC_DIR, 'assets/app.js'));
 
 writeOut('index.html', buildHomePage());
+writeOut('blog/index.html', buildBlogIndex());
+writeOut(`${toolAlpacaPost.path}index.html`, buildToolAlpacaPost());
+writeOut(`${toolAlpacaPost.path}explorer.html`, fs.readFileSync(path.join(ROOT, 'src/blog/toolalpaca-explorer.html'), 'utf8'));
 writeOut('case-studies/index.html', buildCaseStudiesIndex());
 caseStudies.forEach((cs, idx) => {
   writeOut(`case-studies/${cs.slug}/index.html`, buildCaseStudyDetail(cs, idx));

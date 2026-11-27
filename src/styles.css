@@ -147,6 +147,20 @@ a:hover {
   max-width: 880px;
 }
 
+.blog-chart {
+  width: 100%;
+  height: 51rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 520px) {
+  .blog-chart {
+    height: 58rem;
+  }
+}
+
 /* ---------- Typography ---------- */
 h1, h2, h3, h4 {
   color: var(--text);

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MiCA · ToolAlpaca results</title>
+<link rel="icon" href="data:,">
+<style>
+:root { font-family: "Avenir Next", "Segoe UI", sans-serif; color: #152737; background: #eef2f5; line-height: 1.5; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 86rem; margin: auto; padding: clamp(1rem, 4vw, 3.5rem); }
+h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 3.25rem); letter-spacing: -.05em; line-height: 1.12; }
+.lead { margin: .72rem 0 1.5rem; color: #475963; }
+.filters { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-bottom: .9rem; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.filter { display: inline-flex; align-items: center; gap: .5rem; background: #fff; border: 1px solid #a7b7c4; border-radius: .45rem; padding: .38rem .62rem; font-size: .875rem; }
+.filter[aria-pressed=false] { background: transparent; color: #526573; border-color: #c0cbd4; }
+.filter[aria-pressed=false] .symbol { opacity: .45; }
+button:focus-visible { outline: 2px solid #1468a1; outline-offset: 3px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem); gap: 1rem; align-items: start; }
+.panel { background: white; border: 1px solid #cbd6de; border-radius: .7rem; }
+.chart { position: relative; height: clamp(24rem, 59vh, 36rem); }
+.area { position: absolute; inset: 1.6rem 1.6rem 4rem 4.6rem; border: solid #708390; border-width: 0 0 1px 1px; }
+.axis-title { position: absolute; margin: 0; color: #253b4a; font-size: .875rem; font-weight: 600; }
+.x-title { bottom: .8rem; left: 4.6rem; right: 1.6rem; text-align: center; }
+.y-title { left: .42rem; top: 1.6rem; bottom: 4rem; writing-mode: vertical-rl; rotate: 180deg; text-align: center; }
+.gridline { position: absolute; pointer-events: none; background: #dbe5ec; }
+.x-grid { width: 1px; height: 100%; }
+.y-grid { height: 1px; width: 100%; }
+.tick { position: absolute; color: #536673; font-size: .78rem; pointer-events: none; font-variant-numeric: tabular-nums; }
+.x-tick { top: calc(100% + .42rem); transform: translateX(-50%); }
+.y-tick { right: calc(100% + .52rem); transform: translateY(-50%); }
+.point { display: grid; place-items: center; position: absolute; z-index: 2; width: 1.15rem; height: 1.15rem; padding: 0; border: 0; background: transparent; transform: translate(-50%,-50%); }
+.point:focus-visible, .point:hover, .point[aria-pressed=true] { z-index: 5; background: #e0edf7; border-radius: 50%; outline: 1px solid #315b79; }
+.symbol { display: inline-block; width: .64rem; aspect-ratio: 1; background: var(--method); flex: none; }
+.single .symbol { background: color-mix(in srgb, var(--method) 57%, white); }
+.point[data-ranked] .symbol { width: var(--marker-size); }
+.mica-direct .symbol { clip-path: polygon(50% 0,100% 100%,0 100%); }
+.paired-direct .symbol { clip-path: polygon(0 0,100% 0,50% 100%); }
+.full-ft .symbol { clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+.unadapted .symbol { background: white; border: 2px solid var(--method); transform: rotate(45deg) scale(.82); }
+.segment { position: absolute; z-index: 1; height: 0; border-top: 2px solid var(--method); transform-origin: 0 0; pointer-events: none; }
+.segment.paired-direct { border-top-style: dashed; }
+.details { padding: 1rem 1.1rem 1.15rem; }
+.details h2 { font-size: 1.06rem; margin: 0 0 .45rem; }
+.details h3 { font-size: 1.3rem; margin: .3rem 0; line-height: 1.2; }
+.subline, .meta, .legend { color: #526573; font-size: .875rem; }
+.subline { margin: .2rem 0 .75rem; }
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; padding: .7rem 0; border-block: 1px solid #d9e3eb; margin-bottom: .75rem; }
+.metrics div, .params div { min-width: 0; }
+.metrics small, .params dt { display: block; color: #526573; font-size: .78rem; }
+.metrics strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.params { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem .65rem; margin: 0; }
+.params dd { margin: 0; font-weight: 600; }
+.meta { margin: .65rem 0 0; }
+.legend { margin: .65rem 0 0 .15rem; }
+.rank-key { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .85rem; margin: .35rem 0 0 .15rem; }
+.rank-example { display: inline-flex; align-items: center; gap: .35rem; font-variant-numeric: tabular-nums; }
+.rank-example .symbol { width: var(--marker-size); }
+.nearby { margin-top: .75rem; display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+.nearby button { background: #f3f7fa; border: 1px solid #a7b7c4; border-radius: .35rem; padding: .24rem .45rem; font-size: .8rem; }
+.nearby[hidden], .tip[hidden], .point[hidden] { display: none; }
+.tip { position: absolute; z-index: 6; pointer-events: none; background: #152737; color: white; border-radius: .42rem; padding: .48rem .65rem; font-size: .78rem; max-width: 17rem; box-shadow: 0 2px 8px #101b2e36; }
+.tip strong { display: block; font-size: .84rem; }
+@media (max-width: 53rem) { .layout { grid-template-columns: 1fr; } .chart { height: 26rem; } }
+@media (max-width: 30rem) { .chart { height: 23rem; } .area { inset: 1.3rem .95rem 3.6rem 3.8rem; } .x-title { left: 3.8rem; right: .95rem; } .y-title { left: .24rem; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>ToolAlpaca accuracy and retention</h1>
+  <p class="lead">Hover over a point or select it to see the run and its hyperparameters.</p>
+  <div class="filters" id="filters" role="group" aria-label="Method filters"></div>
+  <div class="layout">
+    <div>
+      <section class="panel chart" id="chart" aria-label="Scatter plot of ToolAlpaca accuracy and retention">
+        <div class="area" id="area"></div>
+        <p class="axis-title x-title">Released ToolAlpaca Accuracy (%)</p>
+        <p class="axis-title y-title">Mean retention (%)</p>
+        <div class="tip" id="tip" aria-hidden="true" hidden></div>
+      </section>
+      <p class="legend" id="legend"></p>
+      <div class="legend rank-key" id="rank-key" aria-label="Marker size by rank"><span>Rank</span></div>
+    </div>
+    <aside class="panel details" aria-label="Point details">
+      <h2>Point details</h2>
+      <div id="details"><p class="subline">Select a point on the chart.</p></div>
+      <div id="nearby" class="nearby" hidden>
+        <span class="meta" id="nearby-count"></span>
+        <button id="previous" type="button">Previous point</button>
+        <button id="next" type="button">Next point</button>
+      </div>
+    </aside>
+  </div>
+</main>
+<script type="application/json" id="chart-data">{"points": [{"method": "unadapted", "rank": null, "alpha": null, "lr": null, "epochs": null, "accuracy": 41.23711340206185, "retention": 65.24037152154659, "seed": null, "count": 0}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 54.63917525773196, "retention": 64.41594563359294, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 52.57731958762887, "retention": 64.32549843112082, "seed": 1002, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 53.608247422680414, "retention": 64.30917321781035, "seed": 1003, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 50.51546391752577, "retention": 65.09752227234553, "seed": 1004, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 53.608247422680414, "retention": 64.65088238609444, "seed": 1005, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 54.63917525773196, "retention": 64.58670655805852, "seed": 1006, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 53.608247422680414, "retention": 64.75443683308436, "seed": 1007, "count": 1}, {"method": "mica-direct", "rank": 16, "alpha": 4, "lr": 5e-05, "epochs": 3, "accuracy": 56.70103092783505, "retention": 64.58673358213352, "seed": 1008, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 54.63917525773196, "retention": 63.271845889950214, "seed": 1001, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 56.70103092783505, "retention": 63.29918379315958, "seed": 1002, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 57.73195876288659, "retention": 63.49418481676069, "seed": 1003, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 51.546391752577314, "retention": 63.86031516940903, "seed": 1004, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 59.79381443298969, "retention": 63.733791556390315, "seed": 1005, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 53.608247422680414, "retention": 63.85856326824636, "seed": 1006, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 56.70103092783505, "retention": 63.6590509947912, "seed": 1007, "count": 1}, {"method": "lora-direct", "rank": 64, "alpha": 64, "lr": 5e-05, "epochs": 1, "accuracy": 57.73195876288659, "retention": 63.558709998225, "seed": 1008, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 67.0103092783505, "retention": 59.285268479718226, "seed": 1001, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 71.1340206185567, "retention": 59.10357612256078, "seed": 1002, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 61.855670103092784, "retention": 59.59820490160373, "seed": 1003, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 63.91752577319587, "retention": 59.33514083881874, "seed": 1004, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 67.0103092783505, "retention": 59.638323466729, "seed": 1005, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 65.97938144329896, "retention": 59.22882106383135, "seed": 1006, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 62.88659793814433, "retention": 59.347268703556836, "seed": 1007, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 1, "accuracy": 59.79381443298969, "retention": 59.507347172063234, "seed": 1008, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 0.0002, "epochs": 2, "accuracy": 69.0721649484536, "retention": 63.3764659587477, "seed": 42, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 0.0002, "epochs": 2, "accuracy": 65.97938144329896, "retention": 63.34220022290736, "seed": 43, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 0.0002, "epochs": 2, "accuracy": 64.94845360824742, "retention": 63.703552329792146, "seed": 44, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 5e-05, "epochs": 2, "accuracy": 63.91752577319587, "retention": 63.999070921428334, "seed": 42, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 5e-05, "epochs": 2, "accuracy": 63.91752577319587, "retention": 64.2914699825266, "seed": 43, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 5e-05, "epochs": 2, "accuracy": 62.88659793814433, "retention": 64.6151650568325, "seed": 44, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 67.01030927835052, "retention": 59.47932526988186, "seed": 1001, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 71.1340206185567, "retention": 59.49802421691495, "seed": 1002, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 63.91752577319588, "retention": 59.533607841799764, "seed": 1003, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 69.0721649484536, "retention": 59.71771852182401, "seed": 1004, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 67.01030927835052, "retention": 59.742441459121004, "seed": 1005, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 63.91752577319588, "retention": 60.052856141361225, "seed": 1006, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 63.91752577319588, "retention": 59.66696560882955, "seed": 1007, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 1e-05, "epochs": 2, "accuracy": 62.88659793814433, "retention": 59.48249079951474, "seed": 1008, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 61.855670103092784, "retention": 56.63716161845396, "seed": 1001, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 63.91752577319588, "retention": 55.98476190812829, "seed": 1002, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 61.855670103092784, "retention": 56.157809455209865, "seed": 1003, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 61.855670103092784, "retention": 56.48304742410743, "seed": 1004, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 70.10309278350516, "retention": 56.048791656271376, "seed": 1005, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 68.04123711340206, "retention": 56.42252652644117, "seed": 1006, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 67.01030927835052, "retention": 56.39096246230538, "seed": 1007, "count": 1}, {"method": "full-ft", "rank": null, "alpha": null, "lr": 2e-05, "epochs": 2, "accuracy": 65.97938144329896, "retention": 57.14380806555429, "seed": 1008, "count": 1}, {"method": "paired-direct", "rank": 128, "alpha": 128, "lr": 0.0001, "epochs": 1, "accuracy": 63.91752577319588, "retention": 63.98521415222847, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 128, "alpha": 128, "lr": 0.0002, "epochs": 1, "accuracy": 58.76288659793814, "retention": 62.729965623142256, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 1, "accuracy": 58.76288659793814, "retention": 61.944583864241594, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 128, "alpha": 128, "lr": 5e-05, "epochs": 1, "accuracy": 57.7319587628866, "retention": 64.23860217821607, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0001, "epochs": 1, "accuracy": 60.824742268041234, "retention": 62.77640361322145, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0001, "epochs": 2, "accuracy": 67.01030927835052, "retention": 62.39837507553941, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 1, "accuracy": 64.94845360824742, "retention": 62.18469514753817, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 69.0721649484536, "retention": 61.900474090566604, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 69.0721649484536, "retention": 62.40907482099941, "seed": 1002, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 68.04123711340206, "retention": 62.13030375235703, "seed": 1003, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 70.10309278350516, "retention": 62.163876590092606, "seed": 1004, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 69.0721649484536, "retention": 62.05611912632626, "seed": 1005, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 68.04123711340206, "retention": 62.436407498122016, "seed": 1006, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 67.01030927835052, "retention": 62.39058676663829, "seed": 1007, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0002, "epochs": 2, "accuracy": 67.01030927835052, "retention": 62.06251321699327, "seed": 1008, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 0.0004, "epochs": 1, "accuracy": 63.91752577319588, "retention": 61.01365659342046, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 256, "alpha": 256, "lr": 5e-05, "epochs": 1, "accuracy": 60.824742268041234, "retention": 62.876191112957784, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 64, "alpha": 64, "lr": 0.0001, "epochs": 1, "accuracy": 51.54639175257732, "retention": 64.90379970756644, "seed": 1001, "count": 1}, {"method": "paired-direct", "rank": 64, "alpha": 64, "lr": 0.0004, "epochs": 2, "accuracy": 58.76288659793814, "retention": 62.99568136248286, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 70.10309278350516, "retention": 62.04065539500627, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 70.10309278350516, "retention": 61.17910022650047, "seed": 1002, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 68.04123711340206, "retention": 61.80602610833076, "seed": 1003, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 67.01030927835052, "retention": 61.36446703732593, "seed": 1004, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 65.97938144329896, "retention": 61.10025004928009, "seed": 1005, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 69.0721649484536, "retention": 61.063851592538036, "seed": 1006, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 68.04123711340206, "retention": 61.29471543017996, "seed": 1007, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0004, "epochs": 2, "accuracy": 67.01030927835052, "retention": 61.63441276463526, "seed": 1008, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 71.1340206185567, "retention": 59.971820370326284, "seed": 1001, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 65.97938144329896, "retention": 59.343238364730325, "seed": 1002, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 64.94845360824742, "retention": 58.408854837363194, "seed": 1003, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 65.97938144329896, "retention": 60.076219548470306, "seed": 1004, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 70.10309278350516, "retention": 60.360729691111835, "seed": 1005, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 71.1340206185567, "retention": 59.39126735309042, "seed": 1006, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 71.1340206185567, "retention": 58.608948256530525, "seed": 1007, "count": 1}, {"method": "lora-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 67.01030927835052, "retention": 59.19696927155714, "seed": 1008, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0001, "epochs": 2, "accuracy": 65.97938144329896, "retention": 63.199074581976014, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 128, "alpha": 128, "lr": 0.0008, "epochs": 2, "accuracy": 67.0103092783505, "retention": 59.121797393084464, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 0.0002, "epochs": 2, "accuracy": 67.0103092783505, "retention": 63.38699709767539, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 0.0004, "epochs": 2, "accuracy": 65.97938144329896, "retention": 62.537079569074145, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 32, "alpha": 32, "lr": 0.0008, "epochs": 2, "accuracy": 62.88659793814433, "retention": 62.28966601326772, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 64, "alpha": 64, "lr": 0.0001, "epochs": 2, "accuracy": 67.0103092783505, "retention": 63.462360259086076, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 64, "alpha": 64, "lr": 0.0002, "epochs": 2, "accuracy": 63.91752577319587, "retention": 62.81770401742914, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 64, "alpha": 64, "lr": 0.0004, "epochs": 2, "accuracy": 65.97938144329896, "retention": 62.50413810846077, "seed": 1001, "count": 1}, {"method": "mica-direct", "rank": 64, "alpha": 64, "lr": 0.0008, "epochs": 2, "accuracy": 64.94845360824742, "retention": 61.75871853161054, "seed": 1001, "count": 1}], "methods": {"mica-direct": ["MiCA", "#0072b2"], "lora-direct": ["LoRA", "#b44434"], "full-ft": ["Full fine-tuning", "#161616"], "paired-direct": ["Paired MiCA", "#0072b2"], "unadapted": ["Unadapted Instruct", "#172437"]}, "frontiers": {}}</script>
+<script>
+"use strict";
+const {points, methods, frontiers} = JSON.parse(document.getElementById("chart-data").textContent);
+const area = document.getElementById("area");
+const chart = document.getElementById("chart");
+const tip = document.getElementById("tip");
+const details = document.getElementById("details");
+const nearby = document.getElementById("nearby");
+const count = document.getElementById("nearby-count");
+const enabled = new Set(Object.keys(methods));
+const number = new Intl.NumberFormat("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const bounds = {
+  left: Math.floor(Math.min(...points.map(p => p.accuracy)) / 5) * 5 - .7,
+  right: Math.max(...points.map(p => p.accuracy)) + 1.4,
+  bottom: Math.min(...points.map(p => p.retention)) - .65,
+  top: Math.max(...points.map(p => p.retention)) + .55
+};
+let focusedPoint = null;
+let pinnedPoint = null;
+let neighbors = [];
+const position = {
+  x: val => (val - bounds.left) / (bounds.right - bounds.left),
+  y: val => (bounds.top - val) / (bounds.top - bounds.bottom)
+};
+const pct = val => number.format(val) + "%";
+const lr = val => val === null ? "—" : val.toExponential().replace("e+", "e");
+const type = p => p.count === 0 ? "Reference" : "Seed " + p.seed;
+const rankSize = rank => (.54 + .115 * Math.log2(rank / 16)) + "rem";
+
+function node(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}
+
+function mark(element, p) {
+  element.style.left = position.x(p.accuracy) * 100 + "%";
+  element.style.top = position.y(p.retention) * 100 + "%";
+}
+
+function select(p, pin = false) {
+  if (pin) pinnedPoint = p;
+  focusedPoint = p;
+  details.replaceChildren(node("h3", "", methods[p.method][0]), node("p", "subline", type(p)));
+  const metrics = node("div", "metrics");
+  for (const [label, value] of [["Accuracy", p.accuracy], ["Retention", p.retention]]) {
+    const entry = node("div", "");
+    entry.append(node("small", "", label), node("strong", "", pct(value)));
+    metrics.append(entry);
+  }
+  details.append(metrics);
+  const parameters = node("dl", "params");
+  for (const [label, value] of [["Learning rate", lr(p.lr)], ["Epochs", p.epochs], ["Rank", p.rank], ["Alpha", p.alpha]]) {
+    const entry = node("div", "");
+    entry.append(node("dt", "", label), node("dd", "", value ?? "—"));
+    parameters.append(entry);
+  }
+  details.append(parameters);
+  if (p.job) details.append(node("p", "meta", "Slurm job " + p.job));
+  if (pin) {
+    neighbors = [p, ...points.filter(other => other !== p && enabled.has(other.method) &&
+      Math.hypot((position.x(other.accuracy) - position.x(p.accuracy)) * area.clientWidth,
+        (position.y(other.retention) - position.y(p.retention)) * area.clientHeight) < 15)];
+  }
+  nearby.hidden = !pin || neighbors.length < 2;
+  count.textContent = neighbors.length + " nearby points";
+  for (const marker of markers) marker.setAttribute("aria-pressed", String(marker.point === pinnedPoint));
+}
+
+function hover(marker, p) {
+  select(p);
+  tip.replaceChildren(node("strong", "", methods[p.method][0] + " · " + type(p)),
+    node("div", "", pct(p.accuracy) + " Accuracy · " + pct(p.retention) + " Retention"));
+  if (p.count) tip.append(node("div", "", "LR " + lr(p.lr) + " · " + p.epochs +
+    " Epochs" + (p.rank === null ? "" : " · Rank " + p.rank + " · α " + p.alpha)));
+  tip.hidden = false;
+  const left = area.offsetLeft + marker.offsetLeft;
+  const top = area.offsetTop + marker.offsetTop;
+  tip.style.left = Math.max(8, Math.min(left + 12, chart.clientWidth - tip.offsetWidth - 8)) + "px";
+  tip.style.top = Math.max(5, top - tip.offsetHeight - 7) + "px";
+}
+
+function leave() {
+  tip.hidden = true;
+  if (pinnedPoint) {
+    const choices = neighbors;
+    select(pinnedPoint);
+    neighbors = choices;
+    nearby.hidden = neighbors.length < 2;
+  }
+}
+
+function ticks(start, end, step, axis) {
+  for (let v = Math.ceil(start / step) * step; v <= end; v += step) {
+    const grid = node("div", "gridline " + axis + "-grid");
+    const tick = node("span", "tick " + axis + "-tick", v);
+    const property = axis === "x" ? "left" : "top";
+    grid.style[property] = tick.style[property] = position[axis](v) * 100 + "%";
+    grid.setAttribute("aria-hidden", "true");
+    tick.setAttribute("aria-hidden", "true");
+    area.append(grid, tick);
+  }
+}
+ticks(bounds.left, bounds.right, 5, "x");
+ticks(bounds.bottom, bounds.top, 2, "y");
+
+const markers = points.map(p => {
+  const marker = node("button", "point " + p.method + (p.count ? " single" : ""));
+  marker.type = "button";
+  marker.point = p;
+  marker.style.setProperty("--method", methods[p.method][1]);
+  if (p.rank !== null) {
+    const size = rankSize(p.rank);
+    marker.dataset.ranked = "";
+    marker.style.setProperty("--marker-size", size);
+    marker.style.width = marker.style.height = "max(1.15rem, calc(" + size + " + .3rem))";
+  }
+  marker.setAttribute("aria-label", methods[p.method][0] + ", " + type(p) + ", Accuracy " +
+    pct(p.accuracy) + ", Retention " + pct(p.retention) +
+    (p.count ? ", Learning rate " + lr(p.lr) + ", Epochs " + p.epochs +
+      (p.rank === null ? "" : ", Rank " + p.rank + ", Alpha " + p.alpha) : ""));
+  marker.setAttribute("aria-pressed", "false");
+  marker.append(node("span", "symbol"));
+  mark(marker, p);
+  marker.addEventListener("mouseenter", () => hover(marker, p));
+  marker.addEventListener("focus", () => hover(marker, p));
+  marker.addEventListener("mouseleave", leave);
+  marker.addEventListener("blur", leave);
+  marker.addEventListener("click", () => { select(p, true); tip.hidden = true; });
+  area.append(marker);
+  return marker;
+});
+
+function drawFrontiers() {
+  area.querySelectorAll(".segment").forEach(element => element.remove());
+  for (const [method, curve] of Object.entries(frontiers)) {
+    if (!enabled.has(method)) continue;
+    for (let i = 1; i < curve.length; i++) {
+      const [x, y] = curve[i - 1], [nextX, nextY] = curve[i];
+      const dx = (position.x(nextX) - position.x(x)) * area.clientWidth;
+      const dy = (position.y(nextY) - position.y(y)) * area.clientHeight;
+      const segment = node("span", "segment " + method);
+      segment.style.setProperty("--method", methods[method][1]);
+      segment.style.width = Math.hypot(dx, dy) + "px";
+      segment.style.transform = "rotate(" + Math.atan2(dy, dx) + "rad)";
+      mark(segment, {accuracy: x, retention: y});
+      area.prepend(segment);
+    }
+  }
+}
+new ResizeObserver(drawFrontiers).observe(area);
+
+const legend = document.getElementById("legend");
+function applyFilters() {
+  markers.forEach(marker => { marker.hidden = !enabled.has(marker.point.method); });
+  if (pinnedPoint && !enabled.has(pinnedPoint.method)) pinnedPoint = null;
+  if (focusedPoint && !enabled.has(focusedPoint.method)) {
+    focusedPoint = pinnedPoint = null;
+    details.replaceChildren(node("p", "subline", "Select a point on the chart."));
+    nearby.hidden = tip.hidden = true;
+  }
+  drawFrontiers();
+  const visible = points.filter(p => enabled.has(p.method)).length;
+  legend.textContent = visible + " points · Each filled marker is one run" +
+    (Object.keys(frontiers).length ? " · Lines show the shared-grid Pareto frontiers" : "");
+}
+
+for (const [method, [label, color]] of Object.entries(methods)) {
+  const filter = node("button", "filter " + method);
+  filter.type = "button";
+  filter.setAttribute("aria-pressed", "true");
+  filter.style.setProperty("--method", color);
+  filter.append(node("span", "symbol"), document.createTextNode(label));
+  filter.addEventListener("click", () => {
+    if (enabled.has(method)) enabled.delete(method);
+    else enabled.add(method);
+    filter.setAttribute("aria-pressed", String(enabled.has(method)));
+    applyFilters();
+  });
+  document.getElementById("filters").append(filter);
+}
+for (const rank of [16, 32, 64, 128, 256]) {
+  const example = node("span", "rank-example mica-direct");
+  example.style.setProperty("--marker-size", rankSize(rank));
+  example.style.setProperty("--method", methods["mica-direct"][1]);
+  const symbol = node("span", "symbol");
+  symbol.setAttribute("aria-hidden", "true");
+  example.append(symbol, document.createTextNode(rank));
+  document.getElementById("rank-key").append(example);
+}
+for (const [id, delta] of [["previous", -1], ["next", 1]]) {
+  document.getElementById(id).addEventListener("click", () => {
+    const index = (neighbors.indexOf(focusedPoint) + delta + neighbors.length) % neighbors.length;
+    const choices = neighbors;
+    select(neighbors[index], true);
+    neighbors = choices;
+    count.textContent = (index + 1) + " of " + choices.length + " nearby points";
+  });
+}
+applyFilters();
+</script>
+</body>
+</html>
