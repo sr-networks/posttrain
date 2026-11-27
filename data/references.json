@@ -804,6 +804,16 @@
     "takeaway": "Clear practitioner breakdown of when to choose SFT, RL, or OPD—and why privileged-hint self-distillation exhibits training instability."
   },
   {
+    "title": "Together AI Post-Training Cookbook: Cross-Family Off-Policy Distillation (Kimi-K3.1-Pro to Qwen3.8-27B)",
+    "url": "https://github.com/togethercomputer/post-training-cookbook/tree/main/post_training_cookbook/distillation",
+    "year": 2026,
+    "pillar": "Distillation",
+    "type": "Blog / Case Study",
+    "source": "Web / X",
+    "internalUrl": "distillation/#5-controlled-case-analysis-cross-family-off-policy-distillation-together-ai-2026",
+    "takeaway": "Controlled off-policy LoRA distillation across incompatible tokenizers closing 92% of the FLORES-200 Lao gap (5.5 to 44.3 chrF++) while preventing Thai collapse via retention mixing; teacher data cost USD 7.46."
+  },
+  {
     "title": "RLTL;DR: Self-Improvement by Internalizing Self-Generated Feedback",
     "url": "https://arxiv.org/abs/2609.37633",
     "year": 2026,

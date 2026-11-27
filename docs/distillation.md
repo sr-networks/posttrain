@@ -58,3 +58,41 @@ In enterprise deployments where agents accumulate domain knowledge across sessio
 A two-timescale architecture—exemplified by parameter-efficient self-study (*Engram × Harvey, 2026*) and memory-mediated RL—separates acquisition from consolidation:
 1. **Inference-time state (fast timescale):** Store corrections, precedents, and environment feedback in structured external memory; train the policy via RL to decide *when* to write and retrieve memory entries.
 2. **Parametric consolidation (slow timescale):** Periodically distill high-frequency, verified trajectories into compact LoRA adapters via cross-model OPD or SDFT, reducing runtime context length while preserving core reasoning on held-out retention suites.
+
+---
+
+## 5. Controlled Case Analysis: Cross-Family Off-Policy Distillation (Together AI, 2026)
+
+Although On-Policy Distillation (Section 2) offers superior compute efficiency when student and teacher share a vocabulary, industrial deployments frequently pair a strong teacher from one model family with a compact student from another. A controlled November 2026 study by Together AI ([Post-Training Cookbook](https://github.com/togethercomputer/post-training-cookbook/tree/main/post_training_cookbook/distillation)) demonstrates that text-only **off-policy LoRA distillation** from `Kimi-K3.1-Pro` into `Qwen3.8-27B`—two models with incompatible tokenizers—can close narrow capability gaps ("jagged intelligence") at minimal cost when paired with targeted retention mixing and data-scaling controls.
+
+### Problem Formulation and Baseline Diagnosis
+
+On the full 1,012-sentence FLORES-200 English-to-Lao `devtest` benchmark, base `Qwen3.8-27B` scored **5.5 chrF++** (`11%` Lao script), whereas `Kimi-K3.1-Pro` scored **47.5 chrF++** (`100%` Lao script). Diagnostic inspection revealed that the base student answered in Thai—Lao's closest genealogical relative—on 45 of 50 screened sentences. Round-trip adequacy (back-translating outputs to English via `Kimi-K3.1-Pro`) confirmed that the base student's Thai outputs already preserved source semantics (`64.6`, vs. `64.0` for human Lao references); the failure was language and script identity rather than comprehension.
+
+Because `Kimi-K3.1-Pro` and `Qwen3.8-27B` do not share a tokenizer, token-level log-probability OPD was inapplicable. Teacher trajectories were instead generated via standard serverless chat completions (`temperature=0.0`, thinking disabled) at USD 2/M input and USD 10/M output tokens—costing **USD 7.46** for 4,000 Lao translations—and distilled into a `Qwen3.8-27B` LoRA adapter (`rank=64`, `alpha=128`, peak LR `1e-4` with 5% warmup and cosine decay to `0.1×` peak, batch size 16, assistant-only loss masking). Total experimental spend across all ablations on B200 GPUs was **USD 260**; the best single run completed in 46 minutes (33.7 minutes of training across 602 steps / 1.11M assistant tokens, plus 7.1 minutes for 30 in-loop evaluations).
+
+### Experimental Results
+
+| Training Run | Supervision Mixture | Lao chrF++ (1,012) | Lao Script | Thai chrF++ (300) |
+| --- | --- | --- | --- | --- |
+| Base student (`Qwen3.8-27B`) | None | 5.5 | 11% | 46.7 |
+| Human-reference SFT (control) | 945 human Lao (FLORES `dev`) | 44.7 | 100% | **5.3** |
+| Off-policy distill, Lao only | 965 `Kimi-K3.1-Pro` Lao | 41.8 | 100% | 44.3 |
+| Off-policy distill, Lao + Thai | 965 Lao + 989 Thai (`Kimi-K3.1-Pro`) | 41.9 | 100% | 47.4 |
+| Off-policy distill, 4× Lao + Thai | 3,834 Lao + 989 Thai (`Kimi-K3.1-Pro`) | **44.3** | 100% | **47.8** |
+| Teacher (`Kimi-K3.1-Pro`) | — | 47.5 | 100% | 49.9 |
+
+The 4× mixed distilled student reached **93% of teacher chrF++** (44.3 vs. 47.5), closed **92% of the base-to-teacher gap** (`(44.3 − 5.5) / (47.5 − 5.5) = 0.92`), achieved 65.7 round-trip adequacy with 100% Lao script, and improved Thai translation above the base checkpoint (`46.7 → 47.8`).
+
+### Six Generalizable Engineering Lessons
+
+1. **Monitor adjacent-skill interference and co-train retention slices.** SFT on 945 human Lao references raised Lao to 44.7 chrF++ within 25 steps but collapsed Thai from **46.7 to 5.3 chrF++** (`0%` Thai script): the adapter learned an unconditional "output Lao on translation prompts" rule. Lao-only teacher distillation slowed the degradation (holding for two epochs before slipping to 44.3 in epoch 3, with 17/300 Thai answers emitted in Lao). Mixing ~1,000 (`989`) teacher Thai translations eliminated the regression entirely (`47.8` chrF++). Evaluating only the target slice would have selected the Thai-destroying control run as optimal.
+2. **Fresh teacher data dominates additional training epochs.** Across the four Lao runs, cross-entropy dropped by more than 50% at each epoch boundary as the model memorized seen rows, whereas held-out 300-sentence chrF++ moved by only `−1` to `+3` points. Expanding the Lao set 4× via 3,000 English Wikipedia sentences reached 43.2 chrF++ after a **single epoch**, outperforming three epochs on the smaller Lao + Thai mixture (41.3).
+3. **Single-teacher trajectories exhibit lower target variance than multi-translator human references.** On identical FLORES `dev` prompts, student assistant-token cross-entropy started at **0.36 nats/token** on `Kimi-K3.1-Pro` outputs versus **0.54 nats/token** on human references (finishing at `0.06` vs. `0.16`), reflecting the stylistic consistency of a single teacher distribution relative to a heterogeneous pool of human translators.
+4. **Disable teacher reasoning tokens on non-reasoning tasks.** Enabling `Kimi-K3.1-Pro`'s thinking mode *degraded* 300-sentence Lao translation quality (`43.5` vs. `47.3` chrF++) while consuming roughly `8×` more output tokens (compared to ~175 output tokens per sentence with thinking disabled).
+5. **Apply deterministic pre-filtering before SFT.** Dropping teacher outputs whose characters were `<70%` target script or echoed the English source removed **4%** of raw `Kimi-K3.1-Pro` Lao generations prior to training at negligible cost.
+6. **Audit per-slice failure modes when consolidating multiple skills.** Training a single `r = 64` adapter on 8,871 teacher translations spanning five languages (Lao, Northern Sotho, Yoruba, Zulu, plus Thai retention; 831 steps, 1.5 epochs, 1.04M assistant tokens) closed **87%** (Lao), **85%** (Northern Sotho: `32.7 → 48.0` vs. `50.7`), and **71%** (Yoruba: `20.7 → 25.7` vs. `27.7`) of the teacher gap while improving Thai (`46.7 → 48.0`), yet closed only **12%** on Zulu (`37.7 → 39.2` vs. `50.3`) due to `1%–2%` repetition loops—demonstrating that aggregate multi-task gains can mask localized decoding regressions.
+
+:::insight
+**Methodological rule.** Before launching distillation, screen on a small diagnostic slice (e.g., 50 examples per capability) and distinguish semantic deficits from formatting or routing errors. When cross-family tokenizer mismatches preclude OPD, text-only off-policy distillation remains highly effective provided the training mixture explicitly pairs scalable fresh teacher data with retention data for the closest confusable skills.
+:::
