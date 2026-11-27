@@ -735,7 +735,7 @@ function buildToolAlpacaPost() {
       <h1>${escapeHtml(toolAlpacaPost.title)}</h1>
       <p class="doc-subtitle">${escapeHtml(toolAlpacaPost.description)}</p>
       <p class="doc-meta"><time datetime="${toolAlpacaPost.date}">November 27, 2026</time> · Sten Rüdiger</p>
-      <iframe class="blog-chart" src="explorer.html" title="Interactive ToolAlpaca accuracy and retention chart"></iframe>
+      <iframe class="blog-chart" src="explorer.html" title="Interactive ToolAlpaca accuracy and retention chart" scrolling="no"></iframe>
       <p><a href="explorer.html">Open the full-width chart</a></p>
       <div class="prose">${html}</div>
     </article>`

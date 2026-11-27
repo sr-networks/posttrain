@@ -1,6 +1,25 @@
 (function () {
   const rootPrefix = document.documentElement.dataset.root || './';
 
+  const chartFrame = document.querySelector('.blog-chart');
+  if (chartFrame) {
+    let observer;
+    function fitChart() {
+      const content = chartFrame.contentDocument?.querySelector('main');
+      if (!content) return;
+      observer?.disconnect();
+      function resizeFrame() {
+        const height = `${Math.ceil(content.getBoundingClientRect().height) + 2}px`;
+        if (chartFrame.style.height !== height) chartFrame.style.height = height;
+      }
+      resizeFrame();
+      observer = new ResizeObserver(resizeFrame);
+      observer.observe(content);
+    }
+    chartFrame.addEventListener('load', fitChart);
+    fitChart();
+  }
+
   // ---- Theme toggle ----
   const storedTheme = localStorage.getItem('pt-theme');
   if (storedTheme) {
