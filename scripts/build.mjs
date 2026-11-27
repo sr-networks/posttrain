@@ -271,44 +271,44 @@ function renderMarkdown(md) {
 function pipelineFigureSvg() {
   return `
   <figure class="tech-figure">
-    <svg viewBox="0 0 840 148" width="100%" height="auto" role="img" aria-label="Four-stage industrial post-training architecture">
+    <svg viewBox="0 0 920 154" width="100%" height="auto" role="img" aria-label="Four-stage industrial post-training architecture">
       <defs>
         <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
           <path d="M 0 1 L 7 4 L 0 7 z" fill="currentColor"/>
         </marker>
       </defs>
       <g fill="none" stroke="currentColor" stroke-width="1">
-        <rect x="6" y="16" width="178" height="86"/>
-        <rect x="222" y="16" width="178" height="86"/>
-        <rect x="438" y="16" width="186" height="86"/>
-        <rect x="662" y="16" width="172" height="86"/>
-        <line x1="184" y1="59" x2="218" y2="59" marker-end="url(#arr)"/>
-        <line x1="400" y1="59" x2="434" y2="59" marker-end="url(#arr)"/>
-        <line x1="624" y1="59" x2="658" y2="59" marker-end="url(#arr)"/>
-        <path d="M 748 102 L 748 130 L 531 130 L 531 106" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+        <rect x="6" y="16" width="204" height="88"/>
+        <rect x="240" y="16" width="204" height="88"/>
+        <rect x="474" y="16" width="208" height="88"/>
+        <rect x="712" y="16" width="202" height="88"/>
+        <line x1="210" y1="60" x2="236" y2="60" marker-end="url(#arr)"/>
+        <line x1="444" y1="60" x2="470" y2="60" marker-end="url(#arr)"/>
+        <line x1="682" y1="60" x2="708" y2="60" marker-end="url(#arr)"/>
+        <path d="M 813 104 L 813 132 L 578 132 L 578 108" stroke-dasharray="3 3" marker-end="url(#arr)"/>
       </g>
-      <g fill="currentColor" font-family="Inter, sans-serif">
-        <text x="16" y="34" font-size="9.5" opacity="0.65">I. PRETRAINED BASE &amp; HARNESS</text>
-        <text x="16" y="53" font-size="11.5" font-weight="600">Compact Open Checkpoint</text>
-        <text x="16" y="71" font-size="10.5" opacity="0.8">4B–35B dense or 35B-A3B MoE</text>
-        <text x="16" y="87" font-size="10" opacity="0.65">Externalized state &amp; eval suite</text>
+      <g fill="currentColor" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif">
+        <text x="18" y="35" font-size="9.5" opacity="0.65">I. PRETRAINED BASE &amp; HARNESS</text>
+        <text x="18" y="55" font-size="11.5" font-weight="600">Compact Open Checkpoint</text>
+        <text x="18" y="73" font-size="10" opacity="0.8">4B–35B dense or 35B-A3B MoE</text>
+        <text x="18" y="89" font-size="10" opacity="0.65">Externalized state &amp; eval suite</text>
 
-        <text x="232" y="34" font-size="9.5" opacity="0.65">II. SUPERVISED INITIALIZATION</text>
-        <text x="232" y="53" font-size="11.5" font-weight="600">LoRA SFT / Iterative SFT</text>
-        <text x="232" y="71" font-size="10.5" opacity="0.8">Schema &amp; protocol alignment</text>
-        <text x="232" y="87" font-size="10" opacity="0.65">Rubric-repaired drafts (x, y*)</text>
+        <text x="252" y="35" font-size="9.5" opacity="0.65">II. SUPERVISED INITIALIZATION</text>
+        <text x="252" y="55" font-size="11.5" font-weight="600">LoRA SFT / Iterative SFT</text>
+        <text x="252" y="73" font-size="10" opacity="0.8">Schema &amp; protocol alignment</text>
+        <text x="252" y="89" font-size="10" opacity="0.65">Rubric-repaired drafts (x, y*)</text>
 
-        <text x="448" y="34" font-size="9.5" opacity="0.65">III. ON-POLICY OPTIMIZATION</text>
-        <text x="448" y="53" font-size="11.5" font-weight="600">RLVR / Rubric RL / OPD</text>
-        <text x="448" y="71" font-size="10.5" opacity="0.8">GRPO, DAPO, GSPO, or reverse KL</text>
-        <text x="448" y="87" font-size="10" opacity="0.65">Error recovery &amp; token efficiency</text>
+        <text x="486" y="35" font-size="9.5" opacity="0.65">III. ON-POLICY OPTIMIZATION</text>
+        <text x="486" y="55" font-size="11.5" font-weight="600">RLVR / Rubric RL / OPD</text>
+        <text x="486" y="73" font-size="10" opacity="0.8">GRPO, DAPO, GSPO, or reverse KL</text>
+        <text x="486" y="89" font-size="10" opacity="0.65">Error recovery &amp; token efficiency</text>
 
-        <text x="672" y="34" font-size="9.5" opacity="0.65">IV. DEPLOYMENT</text>
-        <text x="672" y="53" font-size="11.5" font-weight="600">VPC Serving Fleet</text>
-        <text x="672" y="71" font-size="10.5" opacity="0.8">vLLM / SGLang · FP8 · Multi-LoRA</text>
-        <text x="672" y="87" font-size="10" opacity="0.65">5×–64× lower inference cost</text>
+        <text x="724" y="35" font-size="9.5" opacity="0.65">IV. DEPLOYMENT</text>
+        <text x="724" y="55" font-size="11.5" font-weight="600">VPC Serving Fleet</text>
+        <text x="724" y="73" font-size="10" opacity="0.8">vLLM / SGLang · FP8 · Multi-LoRA</text>
+        <text x="724" y="89" font-size="10" opacity="0.65">5×–64× lower inference cost</text>
 
-        <text x="556" y="142" font-size="9.5" opacity="0.7">Logged trajectories &amp; failure slices</text>
+        <text x="695.5" y="146" font-size="9.5" opacity="0.7" text-anchor="middle">Logged trajectories &amp; failure slices</text>
       </g>
     </svg>
     <figcaption><strong>Figure 1.</strong> Canonical post-training pipeline for industrial small and midsize language models. Deterministic state management and evaluation design precede supervised initialization (SFT/iSFT) and on-policy optimization (RL or On-Policy Distillation).</figcaption>
