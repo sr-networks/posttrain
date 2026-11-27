@@ -8,8 +8,6 @@ We fine-tuned Qwen2.5-7B-Instruct to produce tool calls on [ToolAlpaca](https://
 
 Standard MiCA applies this constraint on the output side. Paired MiCA constrains both the input and output sides and trains a small matrix between the two subspaces. It shares the two-sided protection idea with [Subspace Tuning (SST)](https://arxiv.org/abs/2610.22293).
 
-**What “direct” means.** Direct MiCA starts from the Instruct checkpoint. In the original paper, we trained on the base model and applied the learned update to Instruct. The two approaches gave similar results in our eight-seed ToolAlpaca comparison.
-
 ## What we found
 
 Across eight seeds, paired MiCA matched LoRA at **68.43% ToolAlpaca accuracy** while losing **about half as much** on the general benchmarks. Standard MiCA came close to LoRA on the new task and also retained more. In a separate matched-seed comparison, a smaller MiCA adapter matched full fine-tuning on ToolAlpaca and kept retention closer to the unadapted model.
