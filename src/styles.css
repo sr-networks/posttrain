@@ -147,24 +147,6 @@ a:hover {
   max-width: 880px;
 }
 
-/* ---------- Editorial Frontispiece Banner ---------- */
-.site-banner {
-  margin: 0 0 32px;
-  border: 1px solid var(--rule);
-  background: var(--bg-subtle);
-  overflow: hidden;
-}
-
-.site-banner img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-[data-theme="dark"] .site-banner img {
-  opacity: 0.92;
-}
-
 /* ---------- Typography ---------- */
 h1, h2, h3, h4 {
   color: var(--text);

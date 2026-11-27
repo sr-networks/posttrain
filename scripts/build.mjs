@@ -393,10 +393,6 @@ function buildHomePage() {
     .join('');
 
   const bodyHtml = `
-    <figure class="site-banner">
-      <img src="./assets/post-training-banner.jpg" width="1024" height="524" alt="Adjacent high-street storefronts reading POST and Training" decoding="async" fetchpriority="high">
-    </figure>
-
     <div class="prose">
       <h1>Post-Training of Small and Midsize Language Models in Industry</h1>
       <p class="doc-subtitle">A technical synthesis of supervised fine-tuning, reinforcement learning, and knowledge distillation for 4B–35B parameter models across production deployments.</p>
@@ -901,7 +897,6 @@ fs.mkdirSync(path.join(PUBLIC_DIR, 'assets'), { recursive: true });
 
 fs.copyFileSync(path.join(ROOT, 'src/styles.css'), path.join(PUBLIC_DIR, 'assets/styles.css'));
 fs.copyFileSync(path.join(ROOT, 'src/app.js'), path.join(PUBLIC_DIR, 'assets/app.js'));
-fs.copyFileSync(path.join(ROOT, 'src/post-training-banner.jpg'), path.join(PUBLIC_DIR, 'assets/post-training-banner.jpg'));
 
 writeOut('index.html', buildHomePage());
 writeOut('case-studies/index.html', buildCaseStudiesIndex());
