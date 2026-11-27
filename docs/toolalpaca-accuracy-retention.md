@@ -4,6 +4,8 @@ We fine-tuned Qwen2.5-7B-Instruct to produce tool calls on [ToolAlpaca](https://
 
 The chart includes direct [MiCA](https://arxiv.org/abs/2604.01694), direct LoRA, direct paired MiCA, and full fine-tuning. Standard MiCA constrains adapter updates along minor output directions. Paired MiCA constrains both the input and output sides and trains a small core between the two fixed subspaces. This shares the two-sided protection idea with [Subspace Tuning (SST)](https://arxiv.org/abs/2610.22293), which projects the full optimizer update and can refresh its protected basis during training.
 
+**What “direct” means.** Direct MiCA fine-tunes the Instruct checkpoint itself. In the original MiCA paper, we trained the adapter on the base model and applied the learned update to the Instruct checkpoint. At their best tested ToolAlpaca settings, the routes had similar eight-seed means. Direct MiCA scored **68.17% accuracy and 61.44% retention**, and base + merge scored **67.53% accuracy and 61.51% retention**.
+
 Each filled marker is an individual run. Adapter marker sizes increase with rank. The open diamond marks unadapted Instruct.
 
 ## What the current results show
