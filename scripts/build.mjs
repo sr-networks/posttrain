@@ -315,7 +315,7 @@ function pipelineFigureSvg() {
   </figure>`;
 }
 
-function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
+function pageShell({ title, description, activeNav, rootPrefix, bodyHtml, social }) {
   const navItems = [
     { key: 'home', label: 'Overview', href: '' },
     { key: 'sft', label: 'SFT', href: 'sft/' },
@@ -344,6 +344,15 @@ function pageShell({ title, description, activeNav, rootPrefix, bodyHtml }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)} — Post-Training Compendium</title>
   <meta name="description" content="${escapeHtml(description)}">
+  ${social ? `<meta property="og:type" content="article">
+  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:url" content="${escapeHtml(social.url)}">
+  <meta property="og:image" content="${escapeHtml(social.image)}">
+  <meta property="og:image:alt" content="${escapeHtml(social.alt)}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="${escapeHtml(social.image)}">
+  <meta name="twitter:image:alt" content="${escapeHtml(social.alt)}">` : ''}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -727,10 +736,16 @@ function buildBlogIndex() {
 
 function buildToolAlpacaPost() {
   const { html } = renderMarkdown(fs.readFileSync(path.join(ROOT, 'docs/toolalpaca-accuracy-retention.md'), 'utf8'));
+  const url = `https://sr-networks.github.io/posttrain/${toolAlpacaPost.path}`;
   return pageShell({
     ...toolAlpacaPost,
     activeNav: 'blog',
     rootPrefix: '../../',
+    social: {
+      url,
+      image: `${url}social-chart.png`,
+      alt: 'Scatter plot comparing released ToolAlpaca accuracy and mean retention for MiCA, paired MiCA, LoRA, and full fine-tuning.'
+    },
     bodyHtml: `<article class="prose-wide">
       <h1>${escapeHtml(toolAlpacaPost.title)}</h1>
       <p class="doc-subtitle">${escapeHtml(toolAlpacaPost.description)}</p>
@@ -944,6 +959,7 @@ writeOut('index.html', buildHomePage());
 writeOut('blog/index.html', buildBlogIndex());
 writeOut(`${toolAlpacaPost.path}index.html`, buildToolAlpacaPost());
 writeOut(`${toolAlpacaPost.path}explorer.html`, fs.readFileSync(path.join(ROOT, 'src/blog/toolalpaca-explorer.html'), 'utf8'));
+fs.copyFileSync(path.join(ROOT, 'src/blog/social-chart.png'), path.join(PUBLIC_DIR, toolAlpacaPost.path, 'social-chart.png'));
 writeOut('case-studies/index.html', buildCaseStudiesIndex());
 caseStudies.forEach((cs, idx) => {
   writeOut(`case-studies/${cs.slug}/index.html`, buildCaseStudyDetail(cs, idx));
