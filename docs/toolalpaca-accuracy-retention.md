@@ -4,6 +4,8 @@ We fine-tuned Qwen2.5-7B-Instruct to produce tool calls on [ToolAlpaca](https://
 
 The chart includes direct MiCA, direct LoRA, direct paired MiCA, and full fine-tuning. Standard MiCA constrains adapter updates along minor output directions. Paired MiCA constrains both the input and output sides and trains a small core between the two fixed subspaces. This shares the two-sided protection idea with [Subspace Tuning (SST)](https://arxiv.org/abs/2610.22293), which projects the full optimizer update and can refresh its protected basis during training.
 
+Sten Rüdiger and Sebastian Raschka introduced the original method in [MiCA Learns More Knowledge Than LoRA and Full Fine-Tuning](https://arxiv.org/abs/2604.01694).
+
 Each filled marker is an individual run. Adapter marker sizes increase with rank. The open diamond marks unadapted Instruct.
 
 ## What the current results show
