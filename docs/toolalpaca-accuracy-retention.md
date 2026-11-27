@@ -8,7 +8,9 @@ Each filled marker is an individual run. Adapter marker sizes increase with rank
 
 ## What the current results show
 
-The strongest verified direct paired MiCA setting so far reached **68.43% released accuracy and 62.19% retention** across eight seeds. Direct LoRA reached the same observed mean accuracy, with **59.42% retention**. The best direct standard MiCA setting by released accuracy reached **68.17% accuracy and 61.44% retention**. Full fine-tuning reached **66.11% and 59.65%** at its current accuracy leader. Unadapted Instruct scored **41.24% and 65.24%**.
+Across eight seeds, the best tested paired MiCA and LoRA settings both scored **68.43% on ToolAlpaca**. Paired MiCA retained **62.19%** on the five general benchmarks, **2.77 percentage points** more than LoRA's **59.42%**. Relative to unadapted Instruct at **65.24% retention**, paired MiCA lost **3.05 points** and LoRA lost **5.82 points**. That is about **48% less measured forgetting** at the same observed task accuracy.
+
+Standard MiCA showed a similar pattern. Its best tested setting reached **68.17% ToolAlpaca accuracy**, within **0.26 points** of LoRA, with **61.44% retention**. The current full fine-tuning leader reached **66.11% accuracy and 59.65% retention**. Unadapted Instruct scored **41.24%** on ToolAlpaca.
 
 ## Rank and the accuracy–retention frontier
 
