@@ -10,8 +10,8 @@ Standard MiCA applies this constraint on the output side. Paired MiCA constrains
 
 ## What we found
 
-Across eight seeds, paired MiCA matched LoRA at **68.43% ToolAlpaca accuracy** while losing **about half as much** on the general benchmarks. Standard MiCA came close to LoRA on the new task and also retained more. In a separate matched-seed comparison, a smaller MiCA adapter matched full fine-tuning on ToolAlpaca and kept retention closer to the unadapted model.
+Across eight seeds, paired MiCA matched LoRA at **68.43% ToolAlpaca accuracy** while losing **about half as much** on the general benchmarks. Output-constrained MiCA came close to LoRA on the new task and also retained more. In a separate matched-seed comparison, a smaller MiCA adapter matched full fine-tuning on ToolAlpaca and kept retention very close to the unadapted model.
 
 ## How rank affects the trade-off
 
-Larger markers show higher adapter ranks. For both LoRA and MiCA, the higher-rank runs in the chart generally trade some retention for higher tool-use accuracy. We see this pattern in MiCA even with learning rate and epochs held fixed. The LoRA settings shown here also differ in learning rate and epochs. Engram found that LoRA’s capacity grows with rank, using likelihood to estimate learning and forgetting. [Predicting LoRA size for any dataset](https://engram.com/blog/lora-size)
+In the diagram, larger markers show higher adapter ranks. For both LoRA and MiCA, the higher-rank runs in the chart generally trade retention for higher tool-use accuracy, matching the findings on bit capacity by [Engram](https://engram.com/blog/lora-size). We see this pattern in MiCA even with learning rate and epochs held fixed. Engram found that LoRA’s capacity grows with rank, using likelihood to estimate learning and forgetting.
