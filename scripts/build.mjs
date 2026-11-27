@@ -10,8 +10,8 @@ const caseStudies = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/case-studie
 const frameworksData = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/frameworks.json'), 'utf8'));
 const references = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/references.json'), 'utf8'));
 const toolAlpacaPost = {
-  title: 'LoRA-level ToolAlpaca accuracy with better retention',
-  description: 'Paired MiCA matched LoRA on ToolAlpaca and preserved more of Qwen2.5-7B-Instruct’s prior capabilities.',
+  title: 'Mapping the accuracy–retention trade-off in ToolAlpaca fine-tuning',
+  description: 'How adapter rank affects learning and forgetting, and how MiCA compares with LoRA on Qwen2.5-7B-Instruct.',
   path: 'blog/toolalpaca-accuracy-retention/',
   date: '2026-11-27'
 };
